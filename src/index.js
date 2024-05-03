@@ -11,17 +11,15 @@ app.use(cors());
 
 app.use("/auth", userRouter);
 
-//mongoose.connect("mongodb+srv://knighttintapp:Il8KpAIXW8wfVzi9@knighttintapp.yufhogo.mongodb.net/");
-
-mongoose.connect("mongodb+srv://knighttintapp:Il8KpAIXW8wfVzi9@knighttintapp.yufhogo.mongodb.net/",
-{ useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
+mongoose.connect("mongodb+srv://lucknerablard:Bo8iNmAaD0CCTQ3S@knighttint.j9alfru.mongodb.net/knighttint?retryWrites=true&w=majority");
+try {
     console.log('Connected to MongoDB');
-  })
-  .catch((error) => {
+
+}catch(error) {
     console.error('Error connecting to MongoDB:', error);
 }
-);
+
 
 app.listen(3001, () => console.log("SERVER STARTED!"));
+
 
