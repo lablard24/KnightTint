@@ -1,6 +1,6 @@
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
 import FormField from '../components/FormField';
@@ -18,6 +18,7 @@ const SignUp = () => {
   const submit = async () => {
     if(form.name === '' || form.email === ''|| form.username === '' || form.password === ''){
       Alert.alert("Error", "Please fill in all fields");
+      return;
     }
     try {
       setIsSubmitting(true);
@@ -99,7 +100,7 @@ const SignUp = () => {
           </View>
         </View>
       </ScrollView>
-     
+      <StatusBar backgroundColor="#161622" style="dark"/>
     </SafeAreaView>
   );
 };

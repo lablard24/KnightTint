@@ -1,13 +1,16 @@
-import React from 'react'
-import { Text, View } from 'react-native'
+import React from 'react';
+import { StatusBar, Text, View } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
 
-
-const Home = () => {
+const Create = () => {
   return (
+    <SafeAreaView>
     <View>
-      <Text>Home</Text>
+      <Text> Home </Text>
     </View>
+     <StatusBar backgroundColor="#161622" style="dark"/>
+     </SafeAreaView>
   )
 }
 
-export default Home
+export default Create
