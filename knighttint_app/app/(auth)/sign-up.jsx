@@ -58,6 +58,8 @@ const SignUp = () => {
 
           <FormField
             title="Full Name"
+            placeholder="Enter your full name"
+            iconName="person-circle-outline"
             value={form.name}
             handleChangeText={(e) => setForm({ ...form, name: e })}
             otherStyles={styles.field}
@@ -65,6 +67,8 @@ const SignUp = () => {
 
           <FormField
             title="Username"
+            placeholder="Enter your username"
+            iconName="person-outline"
             value={form.username}
             handleChangeText={(e) => setForm({ ...form, username: e })}
             otherStyles={styles.field}
@@ -72,6 +76,8 @@ const SignUp = () => {
 
           <FormField
             title="Email"
+            placeholder="Enter your email address"
+            iconName="mail-outline"
             value={form.email}
             handleChangeText={(e) => setForm({ ...form, email: e })}
             otherStyles={styles.field}
@@ -80,6 +86,8 @@ const SignUp = () => {
 
           <FormField
             title="Password"
+            placeholder="Enter your password"
+            iconName="lock-closed-outline"
             value={form.password}
             handleChangeText={(e) => setForm({ ...form, password: e })}
             otherStyles={styles.field}
@@ -124,6 +132,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center',
   },
   field: {
     marginBottom: 20,

@@ -42,6 +42,39 @@ const SignIn = () => {
     }
   };
 
+  const forgotPassword = () => {
+    Alert.alert('Forgot Password', 'Enter your email address to receive a password reset link.', [
+      {
+        text: 'Cancel',
+        style: 'cancel'
+      },
+      {
+        text: 'Submit',
+        onPress: async () => {
+          // Implement your logic for sending a password reset email
+          try {
+            setIsSubmitting(true);
+            const response = await fetch('http://192.168.56.1:3001/auth/forgot-password', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ email: form.username }) // Assuming username is the email field
+            });
+            const data = await response.json();
+            console.log(data);
+            Alert.alert('Password Reset', 'Check your email for instructions on resetting your password.');
+          } catch (error) {
+            console.error('Error:', error);
+            Alert.alert('Error', error.message);
+          } finally {
+            setIsSubmitting(false);
+          }
+        }
+      }
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -56,6 +89,8 @@ const SignIn = () => {
 
           <FormField
             title="Username"
+            placeholder="Enter your username"
+            iconName="person-outline"
             value={form.username}
             handleChangeText={(e) => setForm({ ...form, username: e })}
             otherStyles={styles.field}
@@ -63,10 +98,20 @@ const SignIn = () => {
 
           <FormField
             title="Password"
+            placeholder="Enter your password"
+            iconName="lock-closed-outline"
             value={form.password}
             handleChangeText={(e) => setForm({ ...form, password: e })}
             otherStyles={styles.field}
           />
+
+          <View style={styles.signUpContainer}>
+            <Link
+              href="/forgotPassword"
+              style={styles.forgotPassword}>
+              Forgot Password?
+            </Link>
+          </View>
 
           <CustomButton
             title="Sign In"
@@ -111,6 +156,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center',
   },
   field: {
     marginBottom: 20,
@@ -134,6 +180,14 @@ const styles = StyleSheet.create({
     color: 'gold',
     fontWeight: 'bold',
     marginLeft: 5,
+  },
+
+  forgotPassword: {
+    fontSize: 16,
+    color: 'white',
+    marginLeft: 230,
+    fontStyle: 'italic', 
+    
   },
 });
 

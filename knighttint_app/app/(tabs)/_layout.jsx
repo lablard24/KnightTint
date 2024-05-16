@@ -40,21 +40,7 @@ const TabsLayout = () => {
           )
         }}
       />
-      <Tabs.Screen
-        name="create"
-        options={{
-          title: 'Create',
-          headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon 
-              icon={require('../assets/icons/plus.png')}
-              color={color}
-              name="Create"
-              focused={focused}
-            />
-          )
-        }}
-      />
+     
       <Tabs.Screen
         name="profile"
         options={{

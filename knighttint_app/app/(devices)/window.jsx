@@ -4,28 +4,26 @@ import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const Home = () => {
-  const getGreeting = () => {
-    const currentHour = new Date().getHours();
-    if (currentHour < 12) {
-      return 'Good Morning';
-    } else {
-      return 'Good Afternoon';
-    }
-  };
+const Window = () => {
 
-  const AddDevice = () => {
-    router.replace('/window')
+  const backHome = () => {
+    router.replace('/home')
+  }
+
+  const help = () => {
+    router.replace('/help')
   }
   
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#161622" style="dark" />
       <View style={styles.navBar}>
-        <Text style={styles.greeting}>{getGreeting()}</Text>
-        <TouchableOpacity style={styles.plusButton} onPress={AddDevice}>
-          <Icon name="add-circle-sharp" size={30} color="#000"/>
+      <TouchableOpacity style={styles.navBarButton} onPress={backHome}>
+          <Icon name="chevron-back-sharp" size={30} color="#000"/>
+        </TouchableOpacity>
+        <Text style={styles.navBarText}>Add Device</Text>
+        <TouchableOpacity style={styles.navBarButton} onPress={help}>
+          <Icon name="help-circle-outline" size={30} color="#000"/>
         </TouchableOpacity>
       </View>
       <View style={styles.container}>
@@ -36,10 +34,12 @@ const Home = () => {
 };
 
 const styles = StyleSheet.create({
+
   safeArea: {
     flex: 1,
     backgroundColor: 'blue',
   },
+
   navBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -48,12 +48,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: 'gold',
   },
-  greeting: {
+
+  navBarText: {
     fontSize: 18,
     color: '#000',
     fontWeight: 'bold',
   },
-  plusButton: {
+
+  navBarButton: {
     padding: 10,
     color: 'black',
   },
@@ -64,4 +66,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Home;
+export default Window;
