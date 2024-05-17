@@ -1,6 +1,7 @@
 import { Link, router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { Alert, Image, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
 import FormField from '../components/FormField';
@@ -51,7 +52,6 @@ const SignIn = () => {
       {
         text: 'Submit',
         onPress: async () => {
-          // Implement your logic for sending a password reset email
           try {
             setIsSubmitting(true);
             const response = await fetch('http://192.168.56.1:3001/auth/forgot-password', {
@@ -59,7 +59,7 @@ const SignIn = () => {
               headers: {
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify({ email: form.username }) // Assuming username is the email field
+              body: JSON.stringify({ email: form.username }) 
             });
             const data = await response.json();
             console.log(data);

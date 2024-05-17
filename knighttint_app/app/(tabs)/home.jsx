@@ -14,23 +14,23 @@ const Home = () => {
     }
   };
 
-  const AddDevice = () => {
-    router.replace('/window')
-  }
-  
+  const addWindow = () => {
+    router.replace('/addWindow'); 
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#161622" style="dark" />
       <View style={styles.navBar}>
         <Text style={styles.greeting}>{getGreeting()}</Text>
-        <TouchableOpacity style={styles.plusButton} onPress={AddDevice}>
-          <Icon name="add-circle-sharp" size={30} color="#000"/>
+        <TouchableOpacity style={styles.plusButton} onPress={addWindow}>
+          <Icon name="add-circle-sharp" size={30} color="#000" />
         </TouchableOpacity>
       </View>
       <View style={styles.container}>
         <Text>Home</Text>
       </View>
+      <StatusBar backgroundColor="#161622" style="dark"/>
     </SafeAreaView>
   );
 };

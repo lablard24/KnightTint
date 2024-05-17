@@ -7,17 +7,32 @@ const DeviceLayout = () => {
    <>
     <Stack>
       <Stack.Screen 
-        name="window"
+        name="addWindow"
         options={{
         headerShown: false
         }}/>
 
-<Stack.Screen 
+      <Stack.Screen 
+        name="setupWifi"
+        options={{
+        headerShown: false
+        }}/>
+
+      <Stack.Screen 
         name="help"
         options={{
         headerShown: false
         }}/>
+
+      <Stack.Screen 
+        name="deviceTask"
+        options={{
+        headerShown: false
+        }}/>
+
     </Stack>
+
+    
    </>
   )
 }

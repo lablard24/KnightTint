@@ -1,13 +1,14 @@
 import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const Help = () => {
 
   const backToDevice = () => {
-    router.replace('/window')
+    router.replace('/addWindow')
   }
 
   
@@ -29,7 +30,7 @@ const Help = () => {
         <Text style={styles.listItem} numberOfLines={4}>4. Ensure that the device can be managed by the App.</Text>
     </View>
 
-
+    <StatusBar backgroundColor="#161622" style="dark"/>
     </SafeAreaView>
   );
 };
