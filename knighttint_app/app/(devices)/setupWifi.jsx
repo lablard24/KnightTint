@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import CustomButton from '../components/CustomButton';
@@ -9,13 +9,16 @@ import CustomButton from '../components/CustomButton';
 const SetWiFi = () => {
 
   const backToAddDevice = () => {
-    router.replace('/addWindow')
+    router.replace('/addWindow');
   }
 
-  const submit = () => {
-    router.replace('/home')
-  }
-
+  const openWifi = () => {
+    if (Platform.OS === 'ios') {
+      Linking.openURL('App-Prefs:root=WIFI');
+    } else if (Platform.OS === 'android') {
+      Linking.sendIntent('android.settings.WIFI_SETTINGS');
+    }
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   return (
@@ -37,67 +40,55 @@ const SetWiFi = () => {
     <View style={styles.container}>
     <CustomButton
         title="Open Settings"
-        handlePress={submit}
+        handlePress={openWifi}
         containerStyles={styles.button}
         isLoading={isSubmitting}
       />
       </View>
-    
-
-   
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    backgroundColor: 'gold',
-  },
-
-  navBarText: {
-    fontSize: 18,
-    color: '#000',
-    fontWeight: 'bold',
-    textAlign: 'center',
-   paddingHorizontal: 90,
-  },
-
-  button: {
-    marginTop: 250,
-    paddingHorizontal:60,
-    paddingTop: 5,
-  },
-
-  navBarButton: {
-    padding: 10,
-    color: 'black',
-  },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 15,
-  },
-
- 
+    safeArea: {
+      flex: 1,
+      backgroundColor: 'white',
+    },
+    navBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      backgroundColor: 'gold',
+    },
+    navBarText: {
+      fontSize: 18,
+      color: '#000',
+      fontWeight: 'bold',
+      textAlign: 'center',
+      paddingHorizontal: 70,
+    },
+    button: {
+      marginTop: 200,
+      paddingHorizontal: 60,
+      paddingTop: 5,
+    },
+    navBarButton: {
+      padding: 10,
+      color: 'black',
+    },
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 15,
+    },
+    listItem: {
+      fontSize: 16,
+      marginBottom: 10,
+      textAlign: 'left',
+      color: 'black',
+      paddingHorizontal: 10,
+    },
+  });
   
-  listItem: {
-    fontSize: 16,
-    marginBottom: 10,
-    textAlign: 'left',
-    color: 'black',
-    paddingHorizontal: 10,
-    
-    
-  },
-});
-
-export default SetWiFi;
+  export default SetWiFi;
+  

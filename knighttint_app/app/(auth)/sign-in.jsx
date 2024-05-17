@@ -43,38 +43,7 @@ const SignIn = () => {
     }
   };
 
-  const forgotPassword = () => {
-    Alert.alert('Forgot Password', 'Enter your email address to receive a password reset link.', [
-      {
-        text: 'Cancel',
-        style: 'cancel'
-      },
-      {
-        text: 'Submit',
-        onPress: async () => {
-          try {
-            setIsSubmitting(true);
-            const response = await fetch('http://192.168.56.1:3001/auth/forgot-password', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ email: form.username }) 
-            });
-            const data = await response.json();
-            console.log(data);
-            Alert.alert('Password Reset', 'Check your email for instructions on resetting your password.');
-          } catch (error) {
-            console.error('Error:', error);
-            Alert.alert('Error', error.message);
-          } finally {
-            setIsSubmitting(false);
-          }
-        }
-      }
-    ]);
-  };
-
+  
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -105,13 +74,13 @@ const SignIn = () => {
             otherStyles={styles.field}
           />
 
-          <View style={styles.signUpContainer}>
+          {/* <View style={styles.signUpContainer}>
             <Link
               href="/forgotPassword"
               style={styles.forgotPassword}>
               Forgot Password?
             </Link>
-          </View>
+          </View> */}
 
           <CustomButton
             title="Sign In"
