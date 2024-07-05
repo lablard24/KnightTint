@@ -9,20 +9,21 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
+
+        <View style={styles.image}>
           <Image 
             source={require('./assets/images/logo.png')}
             style={styles.logo}
             resizeMode='contain'
           />
+          </View>
         
-          <Text style={styles.description}>
-            Unveil Your Home’s Brilliance Smart Tinting Intuitive Control Effortless Comfort
-          </Text>
+          <Text style={styles.description}> Shade, Safety, Style Combined</Text>
 
           <CustomButton
             title="Get Started"
-           // handlePress={() => router.push('/sign-in')}
-            handlePress={() => router.push('/profile')}
+           // handlePress={() => router.push('/signIn')}
+           handlePress={() => router.push('/home')}
             containerStyles={styles.button}
           />
         </View>
@@ -50,15 +51,19 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
   },
+  image: {
+    justifyContent: 'center',
+    alignItems: 'center',
+   paddingTop:100,
+  },
   description: {
-    fontSize: 14,
+    fontSize: 20,
     color: 'white',
-    
     marginTop: 7,
     textAlign: 'center',
   },
   button: {
-    width: '100%',
-    marginTop: 20,
+    width: '50%',
+    marginTop: 100,
   },
 });

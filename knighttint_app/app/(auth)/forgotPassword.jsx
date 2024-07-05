@@ -1,42 +1,100 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
 import FormField from '../components/FormField';
 
 const ForgotPassword = () => {
   const [form, setForm] = useState({
-    username: '',
-    password:''
-  })
+    email: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
- 
-  const submit = async () => {
-   
-    if (form.email === '' ) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
+  const [errors, setErrors] = useState({
+    email: '',
+    newPassword: '',
+    confirmPassword: '',
+    general: ''
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
+
+  const validateEmail = () => {
+    const newErrors = { email: '', general: '' };
+
+    if (!form.email.includes('@')) {
+      newErrors.email = 'Please enter a valid email address';
     }
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error);
+  };
+
+  const validatePasswords = () => {
+    const newErrors = { newPassword: '', confirmPassword: '', general: '' };
+
+    if (form.newPassword === '') {
+      newErrors.newPassword = 'New password is required';
+    } else if (form.newPassword.length < 8 || !/[A-Z]/.test(form.newPassword) || !/[a-z]/.test(form.newPassword)) {
+      newErrors.newPassword = '* Password must be at least 8 characters';
+    }
+
+    if (form.confirmPassword === '') {
+      newErrors.confirmPassword = 'Confirm password is required';
+    } else if (form.newPassword !== form.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error);
+  };
+
+  const checkEmail = async () => {
+    if (!validateEmail()) return;
+
     try {
       setIsSubmitting(true);
-      const response = await fetch('http://192.168.56.1:3001/auth/login', {
+      const response = await fetch('http://192.168.0.194:3001/auth/checkEmail', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email })
+      });
+
+      if (!response.ok) throw new Error(await response.text());
+
+      const data = await response.json();
+      if (data.emailExists) {
+        setEmailExists(true);
+      } else {
+        setErrors({ ...errors, email: 'Email does not exist' });
+      }
+    } catch (error) {
+      setErrors({ ...errors, general: error.message });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resetPassword = async () => {
+    if (!validatePasswords()) return;
+
+    try {
+      setIsSubmitting(true);
+      const response = await fetch('http://192.168.0.194:3001/auth/resetPassword', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       });
-      const data = await response.json();
-     
-      console.log(data);
-      router.replace('/sign-in');
-      
+
+      if (!response.ok) throw new Error(await response.text());
+
+      router.replace('/signIn');
     } catch (error) {
-      console.error('Error:', error);
-      Alert.alert('Error', error.message);
+      setErrors({ ...errors, general: error.message });
     } finally {
       setIsSubmitting(false);
     }
@@ -46,15 +104,8 @@ const ForgotPassword = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.content}>
-          <Image
-            source={require('../assets/images/logo.png')}
-            resizeMode='contain'
-            style={styles.logo}
-          />
-
           <View style={styles.container}>
-          <Text style={styles.title}>Reset Password</Text>
-          <Text style={styles.listItem} numberOfLines={2}>If you have an account with us, you will receive {"\n    "}an email to change your password.</Text>
+            <Text style={styles.title}>Forgot Password</Text>
           </View>
 
           <FormField
@@ -65,17 +116,44 @@ const ForgotPassword = () => {
             handleChangeText={(e) => setForm({ ...form, email: e })}
             otherStyles={styles.field}
             keyboardType="email-address"
+            error={errors.email}
           />
 
+          {emailExists && (
+            <>
+              <FormField
+                title="New Password"
+                placeholder="Enter your new password"
+                iconName="lock-closed-outline"
+                value={form.newPassword}
+                handleChangeText={(e) => setForm({ ...form, newPassword: e })}
+                otherStyles={styles.field}
+                error={errors.newPassword}
+              />
+
+              <FormField
+                title="Confirm Password"
+                placeholder="Enter your new password"
+                iconName="lock-closed-outline"
+                value={form.confirmPassword}
+                handleChangeText={(e) => setForm({ ...form, confirmPassword: e })}
+                otherStyles={styles.field}
+                error={errors.confirmPassword}
+              />
+            </>
+          )}
+
+          {errors.general && <Text style={styles.errorText}>{errors.general}</Text>}
+
           <CustomButton
-            title="Submit"
-            handlePress={submit}
+            title={emailExists ? "Reset Password" : "Submit"}
+            handlePress={emailExists ? resetPassword : checkEmail}
             containerStyles={styles.button}
             isLoading={isSubmitting}
           />
         </View>
       </ScrollView>
-      <StatusBar backgroundColor="#161622" style="dark"/>
+      <StatusBar backgroundColor="#161622" style="dark" />
     </SafeAreaView>
   );
 };
@@ -89,17 +167,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
   },
-  logo: {
-    width: 115,
-    height: 35,
-    marginBottom: 40,
-  },
   title: {
     fontSize: 24,
     color: 'white',
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+    paddingTop: 60,
   },
   field: {
     marginBottom: 20,
@@ -107,14 +181,20 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 20,
   },
-    
   listItem: {
     fontSize: 16,
     marginBottom: 10,
     textAlign: 'center',
     color: 'white',
-    paddingHorizontal: 10,
-    
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  errorInput: {
+    borderColor: 'red',
+    borderWidth: 1,
   },
 });
 

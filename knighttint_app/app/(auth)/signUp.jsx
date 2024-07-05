@@ -1,7 +1,7 @@
 import { Link, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
 import FormField from '../components/FormField';
@@ -14,16 +14,54 @@ const SignUp = () => {
     password: ''
   });
 
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    username: '',
+    password: '',
+    general: ''
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const validateForm = () => {
+    const newErrors = {
+      name: '',
+      email: '',
+      username: '',
+      password: '',
+      general: ''
+    };
+
+    if (form.name.length < 2) {
+      newErrors.name = 'Full Name must be at least 2 characters long';
+    }
+
+    if (form.username.length < 2) {
+      newErrors.username = 'Username must be at least 2 characters long';
+    }
+
+    if (!form.email.includes('@')) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (form.password.length < 8 || !/[A-Z]/.test(form.password) || !/[a-z]/.test(form.password)) {
+      newErrors.password = 'Password must be at least 8 characters long';
+    }
+
+    setErrors(newErrors);
+
+    return !Object.values(newErrors).some(error => error);
+  };
+
   const submit = async () => {
-    if(form.name === '' || form.email === ''|| form.username === '' || form.password === ''){
-      Alert.alert("Error", "Please fill in all fields");
+    if (!validateForm()) {
       return;
     }
+
     try {
       setIsSubmitting(true);
-      const response = await fetch('http://192.168.56.1:3001/auth/register', {
+      const response = await fetch('http://192.168.0.194:3001/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -31,15 +69,29 @@ const SignUp = () => {
         body: JSON.stringify(form)
       });
       const data = await response.json();
-     
+
+      if (!response.ok) {
+        if (data.message && data.message.includes('username')) {
+          setErrors({
+            ...errors,
+            username: 'Username already exists'
+          });
+        } else {
+          setErrors({
+            ...errors,
+            general: data.message || 'Registration failed'
+          });
+        }
+        return;
+      }
+
       console.log(data);
-      Alert.alert('User created successfully!')
+      console.log('User created successfully!');
 
-      router.replace('/sign-in')
-
+      router.replace('/signIn');
     } catch (error) {
       console.error('Error:', error);
-      Alert.alert('Error', error.message);
+      setErrors({ ...errors, general: error.message });
     } finally {
       setIsSubmitting(false);
     }
@@ -49,12 +101,6 @@ const SignUp = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.content}>
-          <Image 
-            source={require('../assets/images/logo.png')} 
-            resizeMode="contain" 
-            style={styles.logo} 
-          />
-
           <Text style={styles.title}>Register</Text>
 
           <FormField
@@ -64,6 +110,7 @@ const SignUp = () => {
             value={form.name}
             handleChangeText={(e) => setForm({ ...form, name: e })}
             otherStyles={styles.field}
+            error={errors.name}
           />
 
           <FormField
@@ -73,6 +120,7 @@ const SignUp = () => {
             value={form.username}
             handleChangeText={(e) => setForm({ ...form, username: e })}
             otherStyles={styles.field}
+            error={errors.username}
           />
 
           <FormField
@@ -83,6 +131,7 @@ const SignUp = () => {
             handleChangeText={(e) => setForm({ ...form, email: e })}
             otherStyles={styles.field}
             keyboardType="email-address"
+            error={errors.email}
           />
 
           <FormField
@@ -92,7 +141,10 @@ const SignUp = () => {
             value={form.password}
             handleChangeText={(e) => setForm({ ...form, password: e })}
             otherStyles={styles.field}
+            error={errors.password}
           />
+
+          {errors.general && <Text style={styles.errorText}>{errors.general}</Text>}
 
           <CustomButton
             title="Sign Up"
@@ -103,13 +155,13 @@ const SignUp = () => {
 
           <View style={styles.loginContainer}>
             <Text style={styles.loginText}>Have an account already?</Text>
-            <Link href="/sign-in" style={styles.loginLink}>
+            <Link href="/signIn" style={styles.loginLink}>
               Log In
             </Link>
           </View>
         </View>
       </ScrollView>
-      <StatusBar backgroundColor="#161622" style="dark"/>
+      <StatusBar backgroundColor="#161622" style="dark" />
     </SafeAreaView>
   );
 };
@@ -123,17 +175,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 40,
   },
-  logo: {
-    width: 115,
-    height: 35,
-    marginBottom: 40,
-  },
   title: {
     fontSize: 24,
     color: 'white',
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+    paddingTop: 30,
   },
   field: {
     marginBottom: 20,
@@ -158,8 +206,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 5,
   },
+  errorText: {
+    color: 'red',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  errorInput: {
+    borderColor: 'red',
+    borderWidth: 1,
+  },
 });
 
 export default SignUp;
-
-
