@@ -58,7 +58,7 @@ const ForgotPassword = () => {
 
     try {
       setIsSubmitting(true);
-      const response = await fetch('http://192.168.0.194:3001/auth/checkEmail', {
+      const response = await fetch('http://192.168.0.197:3001/auth/checkEmail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email })

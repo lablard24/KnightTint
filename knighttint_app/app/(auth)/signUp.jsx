@@ -61,7 +61,7 @@ const SignUp = () => {
 
     try {
       setIsSubmitting(true);
-      const response = await fetch('http://192.168.0.194:3001/auth/register', {
+      const response = await fetch('http://192.168.0.197:3001/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

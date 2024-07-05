@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 app.use("/auth", userRouter);
 app.use("/api", scheduleRouter);
 
-mongoose.connect("mongodb+srv://lucknerablard:Bo8iNmAaD0CCTQ3S@knighttint.j9alfru.mongodb.net/knighttint?retryWrites=true&w=majority");
+mongoose.connect("mongodb+srv://lucknerablard:Bo8iNmAaD0CCTQ3S@knighttintsummer24.j9alfru.mongodb.net/knighttint?retryWrites=true&w=majority");
 try {
     console.log('Connected to MongoDB');
 
