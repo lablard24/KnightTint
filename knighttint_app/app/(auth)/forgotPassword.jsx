@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
 import FormField from '../components/FormField';
+import { CHECKEMAIL_ENDPOINT, RESET_PASSWORD_ENDPOINT, SERVER_IP, SERVER_PORT, SERVER_PROTOCOL } from '../config';
 
 const ForgotPassword = () => {
   const [form, setForm] = useState({
@@ -58,7 +59,8 @@ const ForgotPassword = () => {
 
     try {
       setIsSubmitting(true);
-      const response = await fetch('http://192.168.0.197:3001/auth/checkEmail', {
+      const url = `${SERVER_PROTOCOL}://${SERVER_IP}:${SERVER_PORT}${CHECKEMAIL_ENDPOINT}`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email })
@@ -84,7 +86,8 @@ const ForgotPassword = () => {
 
     try {
       setIsSubmitting(true);
-      const response = await fetch('http://192.168.0.194:3001/auth/resetPassword', {
+      const url = `${SERVER_PROTOCOL}://${SERVER_IP}:${SERVER_PORT}${RESET_PASSWORD_ENDPOINT}`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)

@@ -1,5 +1,6 @@
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
 
@@ -15,15 +16,13 @@ app.use(bodyParser.json());
 app.use("/auth", userRouter);
 app.use("/api", scheduleRouter);
 
-mongoose.connect("mongodb+srv://lucknerablard:Bo8iNmAaD0CCTQ3S@knighttintsummer24.j9alfru.mongodb.net/knighttint?retryWrites=true&w=majority");
-try {
-    console.log('Connected to MongoDB');
+const mongoDbUrl = process.env.MONGO_DB_CONN_STRING;
 
-}catch(error) {
-    console.error('Error connecting to MongoDB:', error);
-}
+mongoose.connect(mongoDbUrl, { useNewUrlParser: true, useUnifiedTopology: true });
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-
-app.listen(3001, () => console.log("SERVER STARTED!"));
-
-
+const port = process.env.PORT || 3001;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});

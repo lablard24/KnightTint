@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { WEBSOCKET_IP } from '../config';
 
 const Home = () => {
   const [focusedItem, setFocusedItem] = useState('Home');
@@ -37,7 +38,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-    ws.current = new WebSocket('ws://192.168.0.197:81/');
+    ws.current = new WebSocket(WEBSOCKET_IP);
 
     ws.current.onopen = () => {
       console.log('WebSocket connection opened');

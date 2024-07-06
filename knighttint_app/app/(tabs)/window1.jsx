@@ -5,6 +5,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ProgressCircle from 'react-native-progress-circle';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { WEBSOCKET_IP } from '../config';
 
 export default function Window() {
   const [windowData, setWindowData] = useState({});
@@ -17,7 +18,7 @@ export default function Window() {
   const currentWindowNumber = 1;
 
   useEffect(() => {
-    ws.current = new WebSocket('ws://192.168.0.197:81/');
+    ws.current = new WebSocket(WEBSOCKET_IP);
 
     ws.current.onopen = () => {
       console.log('WebSocket connection opened');
@@ -37,7 +38,7 @@ export default function Window() {
       }));
     };
 
-    ws.current.onerror = (e) => {
+   ws.current.onerror = (e) => {
       console.log('WebSocket error: ', e.message);
     };
 

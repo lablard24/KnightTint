@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { WEBSOCKET_IP } from '../config';
 
 const Schedule = () => {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -23,7 +24,7 @@ const Schedule = () => {
   const ws = useRef(null);
 
   useEffect(() => {
-    ws.current = new WebSocket('ws://192.168.0.197:81/');
+    ws.current = new WebSocket(WEBSOCKET_IP);
     
     ws.current.onopen = () => {
       console.log('WebSocket connected');
