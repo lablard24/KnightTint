@@ -76,6 +76,11 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
 
+// Root path handler
+app.get('/', (req, res) => {
+  res.send('Welcome to KnightTint'); 
+});
+
 app.use("/auth", userRouter);
 app.use("/api", scheduleRouter);
 
