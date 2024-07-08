@@ -121,7 +121,7 @@ const Home = () => {
       </View>
 
       <View style={styles.navBarDevices}>
-        <Text style={styles.greetingDevices}>Devices here</Text>
+        <Text style={styles.greetingDevices}>Devices </Text>
       </View>
 
       <FlatList
