@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: 'gold',
     borderRadius: 10,
-    paddingHorizontal: 160,
+    paddingHorizontal: 150,
   },
 });
 
