@@ -50,7 +50,7 @@ const TabLayout = () => {
         }}/>
 
      <Stack.Screen 
-        name="automatic"
+        name="automatic1"
         options={{
         headerShown: false
         }}/>
