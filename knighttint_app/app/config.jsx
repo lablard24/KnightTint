@@ -9,7 +9,7 @@ export const CHECKEMAIL_ENDPOINT = '/auth/checkEmail';
 export const RESET_PASSWORD_ENDPOINT = '/auth/resetPassword';*/
 
 export const SERVER_PROTOCOL = 'https'; 
-export const SERVER_DOMAIN = '//knighttint-0ea6e634bb48.herokuapp.com'
+export const SERVER_DOMAIN = 'knighttint-0ea6e634bb48.herokuapp.com'
 export const SERVER_PORT = process.env.PORT || '3001'; 
 
 // Endpoints
