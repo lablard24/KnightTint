@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../components/CustomButton';
 import FormField from '../components/FormField';
-import { LOGIN_ENDPOINT, SERVER_IP, SERVER_PORT, SERVER_PROTOCOL } from '../config';
+import { LOGIN_ENDPOINT, SERVER_DOMAIN, SERVER_PROTOCOL } from '../config';
 
 const SignIn = () => {
   const [form, setForm] = useState({
@@ -48,7 +48,7 @@ const SignIn = () => {
 
     try {
       setIsSubmitting(true);
-      const url = `${SERVER_PROTOCOL}://${SERVER_IP}:${SERVER_PORT}${LOGIN_ENDPOINT}`;
+      const url = `${SERVER_PROTOCOL}://${SERVER_DOMAIN}${LOGIN_ENDPOINT}`;
       const response = await fetch(url, {
         method: 'POST',
         headers: {
