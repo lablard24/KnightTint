@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   },
   navBar: {
     flexDirection: 'row',
-    alignItems: 'center',
+    //alignItems: 'center',
     paddingVertical: 28,
     backgroundColor: 'gold',
   },
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: 'gold',
     borderRadius: 10,
-    paddingHorizontal: 180,
+    paddingHorizontal: 160,
   },
 });
 

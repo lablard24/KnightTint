@@ -54,23 +54,23 @@ export default function Privacy() {
   }, []);
 
   const backHome = () => {
-    router.replace('/home');
+    router.replace(`/window${currentWindowNumber}`);
   };
 
   const taskManager = (label) => {
     setFocusedItem(label);
     switch (label) {
       case 'Privacy':
-        router.replace('/privacy1');
+        router.replace(`/privacy${currentWindowNumber}`);
         break;
       case 'Schedule':
-        router.replace('/schedule1');
+        router.replace(`/schedule${currentWindowNumber}`);
         break;
       case 'Automatic':
-        router.replace('/automatic1');
+        router.replace(`/automatic${currentWindowNumber}`);
         break;
       default:
-        router.replace('/home');
+        router.replace(`/window${currentWindowNumber}`);
     }
   };
 
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#000',
     fontWeight: 'bold',
-    paddingHorizontal: 120,
+    paddingHorizontal: 40,
     flex: 1,
   },
   navBarButton: {

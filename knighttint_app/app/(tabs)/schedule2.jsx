@@ -2,6 +2,7 @@
 import Slider from '@react-native-community/slider';
 import { Picker } from '@react-native-picker/picker';
 import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +11,7 @@ import { WEBSOCKET_IP } from '../config';
 
 const Schedule = () => {
   const [isModalVisible, setModalVisible] = useState(false);
+  const [focusedItem, setFocusedItem] = useState('Schedule');
   const [hour, setHour] = useState('12');
   const [minute, setMinute] = useState('00');
   const [ampm, setAmpm] = useState('AM');
@@ -74,8 +76,26 @@ const Schedule = () => {
   };
 
   const backHome = () => {
-    router.replace('/home');
+    router.replace(`/window${windowNumber}`);
   };
+
+  const taskManager = (label) => {
+    setFocusedItem(label);
+    switch (label) {
+      case 'Privacy':
+        router.replace(`/privacy${windowNumber}`);
+        break;
+      case 'Schedule':
+        router.replace(`/schedule${windowNumber}`);
+        break;
+      case 'Automatic':
+        router.replace(`/automatic${windowNumber}`);
+        break;
+      default:
+        router.replace(`/window${windowNumber}`);
+    }
+  };
+
 
   const convertTo24Hour = (hour, minute, ampm) => {
     let hours24 = parseInt(hour, 10);
@@ -155,6 +175,7 @@ const Schedule = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <StatusBar backgroundColor="#161622" style="dark" />
       <View style={styles.navBar}>
         <TouchableOpacity style={styles.navBarButton} onPress={backHome}>
           <Icon name="chevron-back-sharp" size={30} color="#000" />
@@ -257,9 +278,42 @@ const Schedule = () => {
           </View>
         </View>
       </Modal>
+
+      <View style={styles.taskbar}>
+        <TaskBarItem
+          icon="logo-windows"
+          label="Privacy"
+          isFocused={focusedItem === 'Privacy'}
+          onPress={taskManager}
+        />
+        <TaskBarItem
+          icon="calendar"
+          label="Schedule"
+          isFocused={focusedItem === 'Schedule'}
+          onPress={taskManager}
+        />
+        <TaskBarItem
+          icon="aperture-sharp"
+          label="Automatic"
+          isFocused={focusedItem === 'Automatic'}
+          onPress={taskManager}
+        />
+      </View>
     </SafeAreaView>
   );
 }
+
+const TaskBarItem = ({ icon, label, isFocused, onPress }) => (
+  <TouchableOpacity
+    style={[styles.taskbarItem, isFocused && styles.taskbarItemFocused]}
+    onPress={() => onPress(label)}
+  >
+    <Icon name={icon} size={24} color={isFocused ? 'gold' : '#fff'} />
+    <Text style={[styles.taskbarLabel, isFocused && styles.taskbarLabelFocused]}>
+      {label}
+    </Text>
+  </TouchableOpacity>
+);
 
 export default Schedule;
 
@@ -362,5 +416,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
+  },
+  taskbar: {
+    flexDirection: 'row',
+    backgroundColor: 'black',
+    height: 84,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#232533',
+  },
+  taskbarItem: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 10,
+  },
+  taskbarItemFocused: {
+    backgroundColor: '#333',
+  },
+  taskbarLabel: {
+    color: 'gold',
+    marginTop: 5,
+  },
+  taskbarLabelFocused: {
+    color: 'gold',
   },
 });
