@@ -5,7 +5,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { WEBSOCKET_IP } from '../config';
+import { SERVER_DOMAIN, SERVER_PROTOCOL, WEBSOCKET_IP } from '../config';
+
 
 const Automatic = () => {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -16,6 +17,7 @@ const Automatic = () => {
   const [conditions, setConditions] = useState([]);
   const [temperature, setTemperature] = useState(null);
   const [lux, setLux] = useState(null);
+  const [editingConditionIndex, setEditingConditionIndex] = useState(null);
 
   const windowNumber = 1;
 
@@ -50,25 +52,133 @@ const Automatic = () => {
     };
   }, []);
 
+ 
+
+  useEffect(() => {
+    const fetchConditions = async () => {
+      try {
+        const response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${windowNumber}`);
+        const data = await response.json();
+        setConditions(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+  
+    fetchConditions();
+  }, [windowNumber]);
+  
+
+
   const updateTintLevel = (temperature, lux) => {
+    let newTintLevel = 0;
+
     conditions.forEach(condition => {
       if (condition.type === 'temperature' && temperature >= condition.value) {
-        setTintLevel(condition.tintLevel);
+        newTintLevel = Math.max(newTintLevel, condition.tintLevel);
       } else if (condition.type === 'lux' && lux >= condition.value) {
-        setTintLevel(condition.tintLevel);
+        newTintLevel = Math.max(newTintLevel, condition.tintLevel);
+      } else if (
+        condition.type === 'both' &&
+        temperature >= condition.temperatureValue &&
+        lux >= condition.luxValue
+      ) {
+        newTintLevel = Math.max(newTintLevel, condition.tintLevel);
       }
     });
+
+    setTintLevel(newTintLevel);
   };
 
-  const saveCondition = () => {
-    if (temperatureCondition) {
-      setConditions([...conditions, { type: 'temperature', value: temperatureCondition, tintLevel }]);
+  const openEditModal = (index) => {
+    const condition = conditions[index];
+    setTintLevel(condition.tintLevel);
+    if (condition.type === 'temperature') {
+      setTemperatureCondition(condition.value);
+      setLuxCondition(null);
+    } else if (condition.type === 'lux') {
+      setLuxCondition(condition.value);
+      setTemperatureCondition(null);
+    } else if (condition.type === 'both') {
+      setTemperatureCondition(condition.temperatureValue);
+      setLuxCondition(condition.luxValue);
     }
-    if (luxCondition) {
-      setConditions([...conditions, { type: 'lux', value: luxCondition, tintLevel }]);
-    }
-    setModalVisible(false);
+    setEditingConditionIndex(index);
+    setModalVisible(true);
   };
+
+  const saveCondition = async () => {
+    let newCondition = {
+      windowNumber,  // Include windowNumber in the condition
+      type: '',
+      temperatureValue: null,
+      luxValue: null,
+      value: null,
+      tintLevel
+    };
+  
+    if (temperatureCondition && luxCondition) {
+      newCondition.type = 'both';
+      newCondition.temperatureValue = temperatureCondition;
+      newCondition.luxValue = luxCondition;
+    } else if (temperatureCondition) {
+      newCondition.type = 'temperature';
+      newCondition.value = temperatureCondition;
+    } else if (luxCondition) {
+      newCondition.type = 'lux';
+      newCondition.value = luxCondition;
+    }
+  
+    try {
+      let response;
+      if (editingConditionIndex !== null) {
+        response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${conditions[editingConditionIndex]._id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newCondition)
+        });
+      } else {
+        response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newCondition)
+        });
+      }
+  
+      const updatedCondition = await response.json();
+      if (editingConditionIndex !== null) {
+        const updatedConditions = [...conditions];
+        updatedConditions[editingConditionIndex] = updatedCondition;
+        setConditions(updatedConditions);
+        setEditingConditionIndex(null);
+      } else {
+        setConditions([...conditions, updatedCondition]);
+      }
+  
+      setTemperatureCondition(null);
+      setLuxCondition(null);
+      setModalVisible(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  
+
+  const deleteCondition = async (index) => {
+    try {
+      await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${conditions[index]._id}`, {
+        method: 'DELETE'
+      });
+      setConditions(conditions.filter((_, i) => i !== index));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -86,10 +196,20 @@ const Automatic = () => {
         <FlatList
           data={conditions}
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <View style={styles.scheduleItem}>
-              <Text>Condition: {item.type} === {item.value}</Text>
+              <Text>
+                Condition: {item.type === 'both' ? `Temperature >= ${item.temperatureValue} & Lux >= ${item.luxValue}` : `${item.type} >= ${item.value}`}
+              </Text>
               <Text>Tint Level: {item.tintLevel}%</Text>
+              <View style={styles.scheduleActions}>
+                <TouchableOpacity onPress={() => openEditModal(index)}>
+                  <Icon name="create-outline" size={25} color="#000" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteCondition(index)}>
+                  <Icon name="trash-outline" size={25} color="#000" />
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         />
@@ -112,7 +232,7 @@ const Automatic = () => {
               value={tintLevel}
               onValueChange={(value) => setTintLevel(value)}
             />
-            <Text style={styles.label}>Temperature Condition (===)</Text>
+            <Text style={styles.label}>Temperature Condition</Text>
             <TextInput
               style={styles.input}
               keyboardType="numeric"
@@ -120,7 +240,7 @@ const Automatic = () => {
               value={temperatureCondition ? temperatureCondition.toString() : ''}
               onChangeText={(value) => setTemperatureCondition(parseInt(value))}
             />
-            <Text style={styles.label}>Lux Condition (===)</Text>
+            <Text style={styles.label}>Lux Condition</Text>
             <TextInput
               style={styles.input}
               keyboardType="numeric"
@@ -148,7 +268,7 @@ const Automatic = () => {
           isFocused={focusedItem === 'Schedule'}
           onPress={() => router.replace(`/schedule${windowNumber}`)}
         />
-         <TaskBarItem
+        <TaskBarItem
           icon="aperture-sharp"
           label="Automatic"
           isFocused={focusedItem === 'Automatic'}
@@ -183,9 +303,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
+    paddingVertical: 10,
     borderBottomColor: '#000',
+    backgroundColor: 'gold',
   },
   navBarButton: {
     padding: 10,
@@ -203,7 +323,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   scheduleItem: {
-    backgroundColor: 'white',
+    backgroundColor: 'gold',
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
@@ -277,5 +397,10 @@ const styles = StyleSheet.create({
   },
   taskbarLabelFocused: {
     color: 'gold',
+  },
+  scheduleActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
   },
 });

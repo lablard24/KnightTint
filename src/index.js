@@ -67,6 +67,7 @@ import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
 
+import { condtionRouter } from './routes/condition.js';
 import { scheduleRouter } from './routes/schedule.js';
 import { userRouter } from './routes/users.js';
 
@@ -83,6 +84,7 @@ app.get('/', (req, res) => {
 
 app.use("/auth", userRouter);
 app.use("/api", scheduleRouter);
+app.use("/condition", condtionRouter)
 
 const mongoDbUrl = process.env.MONGO_DB_CONN_STRING;
 

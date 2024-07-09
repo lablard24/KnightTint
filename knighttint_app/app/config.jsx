@@ -10,3 +10,4 @@ export const LOGIN_ENDPOINT = '/auth/login';
 export const CHECKEMAIL_ENDPOINT = '/auth/checkEmail';
 export const RESET_PASSWORD_ENDPOINT = '/auth/resetPassword';
 
+
