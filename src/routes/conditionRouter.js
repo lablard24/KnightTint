@@ -1,6 +1,4 @@
 import express from 'express';
-//import { ConditionModel as ConditionModel } from '../models/Condition.js';
-
 import { ConditionModel } from '../models/Condition.js';
 
 const router = express.Router();
@@ -47,4 +45,4 @@ router.delete('/conditions/:id', async (req, res) => {
   }
 });
 
-export { router as condtionRouter };
+export { router as conditionRouter };

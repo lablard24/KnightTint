@@ -5,8 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { SERVER_DOMAIN, SERVER_PROTOCOL, WEBSOCKET_IP } from '../config';
-
+import { SERVER_IP, SERVER_PORT, SERVER_PROTOCOL, WEBSOCKET_IP } from '../config';
 
 const Automatic = () => {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -25,7 +24,7 @@ const Automatic = () => {
 
   useEffect(() => {
     ws.current = new WebSocket(WEBSOCKET_IP);
-    
+
     ws.current.onopen = () => {
       console.log('WebSocket connected');
     };
@@ -43,25 +42,33 @@ const Automatic = () => {
       console.error('WebSocket error:', e.message);
     };
 
-    ws.current.onclose = (e) => {
+    ws.current.onclose = () => {
       console.log('WebSocket closed');
     };
 
     return () => {
-      ws.current.close();
+      if (ws.current) {
+        ws.current.close();
+      }
     };
   }, []);
-
- 
 
   useEffect(() => {
     const fetchConditions = async () => {
       try {
-        const response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${windowNumber}`);
-        const data = await response.json();
-        setConditions(data);
+        const response = await fetch(`${SERVER_PROTOCOL}://${SERVER_IP}:${SERVER_PORT}/conditions/${windowNumber}`);
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.indexOf('application/json') !== -1) {
+          const data = await response.json();
+          setConditions(data);
+        } else {
+          // Log the response to diagnose the issue
+          const errorText = await response.text();
+          console.error('Unexpected response:', errorText);
+        }
       } catch (error) {
-        console.error(error);
+        console.error('Fetch error:', error);
       }
     };
   
@@ -69,11 +76,10 @@ const Automatic = () => {
   }, [windowNumber]);
   
 
-
   const updateTintLevel = (temperature, lux) => {
     let newTintLevel = 0;
 
-    conditions.forEach(condition => {
+    conditions.forEach((condition) => {
       if (condition.type === 'temperature' && temperature >= condition.value) {
         newTintLevel = Math.max(newTintLevel, condition.tintLevel);
       } else if (condition.type === 'lux' && lux >= condition.value) {
@@ -109,14 +115,14 @@ const Automatic = () => {
 
   const saveCondition = async () => {
     let newCondition = {
-      windowNumber,  // Include windowNumber in the condition
+      windowNumber,
       type: '',
       temperatureValue: null,
       luxValue: null,
       value: null,
-      tintLevel
+      tintLevel,
     };
-  
+
     if (temperatureCondition && luxCondition) {
       newCondition.type = 'both';
       newCondition.temperatureValue = temperatureCondition;
@@ -128,27 +134,27 @@ const Automatic = () => {
       newCondition.type = 'lux';
       newCondition.value = luxCondition;
     }
-  
+
     try {
       let response;
       if (editingConditionIndex !== null) {
-        response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${conditions[editingConditionIndex]._id}`, {
+        response = await fetch(`${SERVER_PROTOCOL}://${SERVER_IP}:${SERVER_PORT}/conditions/${conditions[editingConditionIndex]._id}`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify(newCondition)
+          body: JSON.stringify(newCondition),
         });
       } else {
-        response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions`, {
+        response = await fetch(`${SERVER_PROTOCOL}://${SERVER_IP}:${SERVER_PORT}/conditions`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify(newCondition)
+          body: JSON.stringify(newCondition),
         });
       }
-  
+
       const updatedCondition = await response.json();
       if (editingConditionIndex !== null) {
         const updatedConditions = [...conditions];
@@ -158,7 +164,7 @@ const Automatic = () => {
       } else {
         setConditions([...conditions, updatedCondition]);
       }
-  
+
       setTemperatureCondition(null);
       setLuxCondition(null);
       setModalVisible(false);
@@ -166,19 +172,17 @@ const Automatic = () => {
       console.error(error);
     }
   };
-  
 
   const deleteCondition = async (index) => {
     try {
-      await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${conditions[index]._id}`, {
-        method: 'DELETE'
+      await fetch(`${SERVER_PROTOCOL}://${SERVER_IP}:${SERVER_PORT}/conditions/${conditions[index]._id}`, {
+        method: 'DELETE',
       });
       setConditions(conditions.filter((_, i) => i !== index));
     } catch (error) {
       console.error(error);
     }
   };
-  
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -277,12 +281,12 @@ const Automatic = () => {
       </View>
     </SafeAreaView>
   );
-}
+};
 
 const TaskBarItem = ({ icon, label, isFocused, onPress }) => (
   <TouchableOpacity
     style={[styles.taskbarItem, isFocused && styles.taskbarItemFocused]}
-    onPress={() => onPress(label)}
+    onPress={onPress}
   >
     <Icon name={icon} size={24} color={isFocused ? 'gold' : '#fff'} />
     <Text style={[styles.taskbarLabel, isFocused && styles.taskbarLabelFocused]}>
