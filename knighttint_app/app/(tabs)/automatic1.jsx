@@ -76,6 +76,7 @@ const Automatic = () => {
     fetchConditions();
   }, [windowNumber]);
   
+  
   const updateTintLevel = (temperature, lux) => {
     let newTintLevel = 0;
   
@@ -94,7 +95,9 @@ const Automatic = () => {
     });
   
     setTintLevel(newTintLevel);
+    sendTintLevelToWebSocket(newTintLevel);  
   };
+  
   
   const openEditModal = (index) => {
     const condition = conditions[index];
@@ -184,11 +187,21 @@ const Automatic = () => {
     }
   };
   
+
+  const sendTintLevelToWebSocket = (tintValue) => {
+    if (ws.current) {
+      ws.current.send(JSON.stringify({ window: currentWindowNumber, action: 'auto', value: tintValue }));
+      setWindowData(prevData => ({
+        ...prevData,
+        [currentWindowNumber]: {
+          ...prevData[currentWindowNumber],
+          Tint: tintValue
+        }
+      }));
+    }
+  };
   
-
-
-
-
+  
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#161622" style="dark" />
