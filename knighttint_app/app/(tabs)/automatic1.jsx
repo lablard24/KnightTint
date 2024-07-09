@@ -65,7 +65,6 @@ const Automatic = () => {
           const data = await response.json();
           setConditions(data);
         } else {
-          // Log the response to diagnose the issue
           const errorText = await response.text();
           console.error('Unexpected response:', errorText);
         }
@@ -184,6 +183,7 @@ const Automatic = () => {
       console.error(error);
     }
   };
+  
   
 
 
