@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { SERVER_IP, SERVER_PORT, SERVER_PROTOCOL, WEBSOCKET_IP } from '../config';
+import { SERVER_DOMAIN, SERVER_PROTOCOL, WEBSOCKET_IP } from '../config';
 
 const Automatic = () => {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -53,10 +53,12 @@ const Automatic = () => {
     };
   }, []);
 
+  
+
   useEffect(() => {
     const fetchConditions = async () => {
       try {
-        const response = await fetch(`${SERVER_PROTOCOL}://${SERVER_IP}:${SERVER_PORT}/conditions/${windowNumber}`);
+        const response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${windowNumber}`);
         const contentType = response.headers.get('content-type');
         
         if (contentType && contentType.indexOf('application/json') !== -1) {
@@ -75,14 +77,13 @@ const Automatic = () => {
     fetchConditions();
   }, [windowNumber]);
   
-
   const updateTintLevel = (temperature, lux) => {
     let newTintLevel = 0;
-
+  
     conditions.forEach((condition) => {
-      if (condition.type === 'temperature' && temperature >= condition.value) {
+      if (condition.type === 'temperature' && temperature >= condition.temperatureValue) {
         newTintLevel = Math.max(newTintLevel, condition.tintLevel);
-      } else if (condition.type === 'lux' && lux >= condition.value) {
+      } else if (condition.type === 'lux' && lux >= condition.luxValue) {
         newTintLevel = Math.max(newTintLevel, condition.tintLevel);
       } else if (
         condition.type === 'both' &&
@@ -92,18 +93,18 @@ const Automatic = () => {
         newTintLevel = Math.max(newTintLevel, condition.tintLevel);
       }
     });
-
+  
     setTintLevel(newTintLevel);
   };
-
+  
   const openEditModal = (index) => {
     const condition = conditions[index];
     setTintLevel(condition.tintLevel);
     if (condition.type === 'temperature') {
-      setTemperatureCondition(condition.value);
+      setTemperatureCondition(condition.temperatureValue);
       setLuxCondition(null);
     } else if (condition.type === 'lux') {
-      setLuxCondition(condition.value);
+      setLuxCondition(condition.luxValue);
       setTemperatureCondition(null);
     } else if (condition.type === 'both') {
       setTemperatureCondition(condition.temperatureValue);
@@ -112,7 +113,7 @@ const Automatic = () => {
     setEditingConditionIndex(index);
     setModalVisible(true);
   };
-
+  
   const saveCondition = async () => {
     let newCondition = {
       windowNumber,
@@ -122,23 +123,23 @@ const Automatic = () => {
       value: null,
       tintLevel,
     };
-
+  
     if (temperatureCondition && luxCondition) {
       newCondition.type = 'both';
       newCondition.temperatureValue = temperatureCondition;
       newCondition.luxValue = luxCondition;
     } else if (temperatureCondition) {
       newCondition.type = 'temperature';
-      newCondition.value = temperatureCondition;
+      newCondition.temperatureValue = temperatureCondition;
     } else if (luxCondition) {
       newCondition.type = 'lux';
-      newCondition.value = luxCondition;
+      newCondition.luxValue = luxCondition;
     }
-
+  
     try {
       let response;
       if (editingConditionIndex !== null) {
-        response = await fetch(`${SERVER_PROTOCOL}://${SERVER_IP}:${SERVER_PORT}/conditions/${conditions[editingConditionIndex]._id}`, {
+        response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${conditions[editingConditionIndex]._id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -146,7 +147,7 @@ const Automatic = () => {
           body: JSON.stringify(newCondition),
         });
       } else {
-        response = await fetch(`${SERVER_PROTOCOL}://${SERVER_IP}:${SERVER_PORT}/conditions`, {
+        response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -154,7 +155,7 @@ const Automatic = () => {
           body: JSON.stringify(newCondition),
         });
       }
-
+  
       const updatedCondition = await response.json();
       if (editingConditionIndex !== null) {
         const updatedConditions = [...conditions];
@@ -164,7 +165,7 @@ const Automatic = () => {
       } else {
         setConditions([...conditions, updatedCondition]);
       }
-
+  
       setTemperatureCondition(null);
       setLuxCondition(null);
       setModalVisible(false);
@@ -172,10 +173,10 @@ const Automatic = () => {
       console.error(error);
     }
   };
-
+  
   const deleteCondition = async (index) => {
     try {
-      await fetch(`${SERVER_PROTOCOL}://${SERVER_IP}:${SERVER_PORT}/conditions/${conditions[index]._id}`, {
+      await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${conditions[index]._id}`, {
         method: 'DELETE',
       });
       setConditions(conditions.filter((_, i) => i !== index));
@@ -183,6 +184,10 @@ const Automatic = () => {
       console.error(error);
     }
   };
+  
+
+
+
 
   return (
     <SafeAreaView style={styles.safeArea}>

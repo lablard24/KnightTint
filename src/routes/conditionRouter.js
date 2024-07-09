@@ -15,6 +15,23 @@ router.post('/conditions', async (req, res) => {
   }
 });
 
+
+// Get conditions by window number
+router.get('/conditions/:windowNumber', async (req, res) => {
+  try {
+    const windowNumber = parseInt(req.params.windowNumber);
+    const conditions = await ConditionModel.find({ windowNumber });
+    if (conditions.length === 0) {
+      return res.status(404).send('No conditions found for the specified window number');
+    }
+    res.send(conditions);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+
+
 // Update an existing condition by ID
 router.put('/conditions/:id', async (req, res) => {
   try {
