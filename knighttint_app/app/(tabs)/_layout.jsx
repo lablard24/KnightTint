@@ -55,6 +55,12 @@ const TabLayout = () => {
         headerShown: false
         }}/>
 
+<Stack.Screen 
+        name="automatic2"
+        options={{
+        headerShown: false
+        }}/>
+
     </Stack>
    </>
   )

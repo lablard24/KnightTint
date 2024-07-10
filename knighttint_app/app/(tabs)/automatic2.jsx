@@ -19,7 +19,7 @@ const Automatic = () => {
   const [lux, setLux] = useState(null);
   const [editingConditionIndex, setEditingConditionIndex] = useState(null);
 
-  const windowNumber = 1;
+  const windowNumber = 2;
 
   const ws = useRef(null);
 
