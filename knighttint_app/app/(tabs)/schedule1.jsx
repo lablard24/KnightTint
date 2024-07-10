@@ -1,5 +1,3 @@
-
-// Everything works fine
 import Slider from '@react-native-community/slider';
 import { Picker } from '@react-native-picker/picker';
 import { router } from 'expo-router';
@@ -22,7 +20,7 @@ const Schedule = () => {
   const [editingScheduleId, setEditingScheduleId] = useState(null);
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-  const windowNumber = 1; 
+  const windowNumber = 1;
 
   const ws = useRef(null);
 
@@ -186,14 +184,21 @@ const Schedule = () => {
         </TouchableOpacity>
       </View>
       <View style={styles.content}>
-        <FlatList
+        {/* <FlatList
           data={schedules}
           keyExtractor={(item) => item._id}
           renderItem={({ item, index }) => (
             <View style={styles.scheduleItem}>
-              <Text>Time: {item.hour}:{item.minute} {item.ampm}</Text>
-              <Text>Tint Level: {item.tintLevel}%</Text>
-              <Text>Repeat: {item.repeatDays.join(', ')}</Text>
+              <Text>
+                <Text style={{ fontWeight: 'bold' }}>Time:</Text> {item.hour && item.minute && item.ampm ? `${item.hour}:${item.minute} ${item.ampm}` : 'Not Set'}
+              </Text>
+              <Text>
+                <Text style={{ fontWeight: 'bold' }}>Tint Level:</Text> {item.tintLevel != null ? `${item.tintLevel}%` : 'Not Set'}
+              </Text>
+              <Text>
+                <Text style={{ fontWeight: 'bold' }}>Repeat:</Text> {item.repeatDays.length ? item.repeatDays.join(', ') : 'Not Set'}
+              </Text>
+
               <View style={styles.scheduleActions}>
                 <TouchableOpacity onPress={() => editSchedule(index)}>
                   <Icon name="create-outline" size={25} color="#000" />
@@ -203,8 +208,35 @@ const Schedule = () => {
                 </TouchableOpacity>
               </View>
             </View>
-          )}
-        />
+          )}   
+        /> */}
+        <FlatList
+  data={schedules}
+  keyExtractor={(item) => item._id}
+  renderItem={({ item, index }) => (
+    <View style={styles.scheduleItem} key={item._id}>
+      <Text>
+        <Text style={{ fontWeight: 'bold' }}>Time:</Text> {item.hour ? `${item.hour}:${item.minute}` : 'Not Set'} {item.ampm ? item.ampm : 'Not Set'}
+      </Text>
+      <Text>
+        <Text style={{ fontWeight: 'bold' }}>Tint Level:</Text> {item.tintLevel ? `${item.tintLevel}%` : 'Not Set'}
+      </Text>
+      <Text>
+        <Text style={{ fontWeight: 'bold' }}>Repeat:</Text> {item.repeatDays && item.repeatDays.length > 0 ? item.repeatDays.join(', ') : 'Not Set'}
+      </Text>
+
+      <View style={styles.scheduleActions}>
+        <TouchableOpacity key={`edit_${item._id}`} onPress={() => editSchedule(index)}>
+          <Icon name="create-outline" size={25} color="#000" />
+        </TouchableOpacity>
+        <TouchableOpacity key={`delete_${item._id}`} onPress={() => deleteSchedule(index)}>
+          <Icon name="trash-outline" size={25} color="#000" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  )}
+/>
+
       </View>
 
       <Modal
@@ -302,7 +334,6 @@ const Schedule = () => {
     </SafeAreaView>
   );
 }
-
 
 const TaskBarItem = ({ icon, label, isFocused, onPress }) => (
   <TouchableOpacity
@@ -443,3 +474,4 @@ const styles = StyleSheet.create({
     color: 'gold',
   },
 });
+

@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   scheduleItem: {
-    backgroundColor: 'gold',
+    backgroundColor: 'white',
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
