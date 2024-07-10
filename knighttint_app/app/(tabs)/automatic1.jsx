@@ -11,6 +11,7 @@ const Automatic = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [focusedItem, setFocusedItem] = useState('Automatic');
   const [tintLevel, setTintLevel] = useState(0);
+  const [conditionType, setConditionType] = useState('temperature');
   const [temperatureCondition, setTemperatureCondition] = useState(null);
   const [luxCondition, setLuxCondition] = useState(null);
   const [conditions, setConditions] = useState([]);
@@ -53,8 +54,6 @@ const Automatic = () => {
     };
   }, []);
 
-  
-
   useEffect(() => {
     const fetchConditions = async () => {
       try {
@@ -75,11 +74,10 @@ const Automatic = () => {
   
     fetchConditions();
   }, [windowNumber]);
-  
-  
+
   const updateTintLevel = (temperature, lux) => {
     let newTintLevel = 0;
-  
+
     conditions.forEach((condition) => {
       if (condition.type === 'temperature' && temperature >= condition.temperatureValue) {
         newTintLevel = Math.max(newTintLevel, condition.tintLevel);
@@ -93,51 +91,40 @@ const Automatic = () => {
         newTintLevel = Math.max(newTintLevel, condition.tintLevel);
       }
     });
-  
+
     setTintLevel(newTintLevel);
     sendTintLevelToWebSocket(newTintLevel);  
   };
-  
-  
+
   const openEditModal = (index) => {
     const condition = conditions[index];
     setTintLevel(condition.tintLevel);
     if (condition.type === 'temperature') {
+      setConditionType('temperature');
       setTemperatureCondition(condition.temperatureValue);
       setLuxCondition(null);
     } else if (condition.type === 'lux') {
+      setConditionType('lux');
       setLuxCondition(condition.luxValue);
       setTemperatureCondition(null);
     } else if (condition.type === 'both') {
+      setConditionType('both');
       setTemperatureCondition(condition.temperatureValue);
       setLuxCondition(condition.luxValue);
     }
     setEditingConditionIndex(index);
     setModalVisible(true);
   };
-  
+
   const saveCondition = async () => {
     let newCondition = {
       windowNumber,
-      type: '',
-      temperatureValue: null,
-      luxValue: null,
-      value: null,
+      type: conditionType,
+      temperatureValue: temperatureCondition,
+      luxValue: luxCondition,
       tintLevel,
     };
-  
-    if (temperatureCondition && luxCondition) {
-      newCondition.type = 'both';
-      newCondition.temperatureValue = temperatureCondition;
-      newCondition.luxValue = luxCondition;
-    } else if (temperatureCondition) {
-      newCondition.type = 'temperature';
-      newCondition.temperatureValue = temperatureCondition;
-    } else if (luxCondition) {
-      newCondition.type = 'lux';
-      newCondition.luxValue = luxCondition;
-    }
-  
+
     try {
       let response;
       if (editingConditionIndex !== null) {
@@ -157,7 +144,7 @@ const Automatic = () => {
           body: JSON.stringify(newCondition),
         });
       }
-  
+
       const updatedCondition = await response.json();
       if (editingConditionIndex !== null) {
         const updatedConditions = [...conditions];
@@ -167,7 +154,7 @@ const Automatic = () => {
       } else {
         setConditions([...conditions, updatedCondition]);
       }
-  
+
       setTemperatureCondition(null);
       setLuxCondition(null);
       setModalVisible(false);
@@ -175,7 +162,7 @@ const Automatic = () => {
       console.error(error);
     }
   };
-  
+
   const deleteCondition = async (index) => {
     try {
       await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${conditions[index]._id}`, {
@@ -186,7 +173,6 @@ const Automatic = () => {
       console.error(error);
     }
   };
-  
 
   const sendTintLevelToWebSocket = (tintValue) => {
     if (ws.current) {
@@ -200,8 +186,7 @@ const Automatic = () => {
       }));
     }
   };
-  
-  
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#161622" style="dark" />
@@ -221,7 +206,10 @@ const Automatic = () => {
           renderItem={({ item, index }) => (
             <View style={styles.scheduleItem}>
               <Text>
-                Condition: {item.type === 'both' ? `Temperature >= ${item.temperatureValue} & Lux >= ${item.luxValue}` : `${item.type} >= ${item.value}`}
+                Condition
+              </Text>
+              <Text>
+                {item.type === 'both' ? `Temperature: ${item.temperatureValue} & Lux: ${item.luxValue}` : `${item.type} >= ${item.type === 'temperature' ? item.temperatureValue : item.luxValue}`}
               </Text>
               <Text>Tint Level: {item.tintLevel}%</Text>
               <View style={styles.scheduleActions}>
@@ -254,22 +242,39 @@ const Automatic = () => {
               value={tintLevel}
               onValueChange={(value) => setTintLevel(value)}
             />
-            <Text style={styles.label}>Temperature Condition</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              placeholder="Enter temperature"
-              value={temperatureCondition ? temperatureCondition.toString() : ''}
-              onChangeText={(value) => setTemperatureCondition(parseInt(value))}
-            />
-            <Text style={styles.label}>Lux Condition</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              placeholder="Enter lux"
-              value={luxCondition ? luxCondition.toString() : ''}
-              onChangeText={(value) => setLuxCondition(parseInt(value))}
-            />
+            <Text style={styles.label}>Condition Type</Text>
+            <View style={styles.conditionTypeContainer}>
+              <TouchableOpacity
+                style={[styles.conditionTypeButton, conditionType === 'temperature' && styles.conditionTypeButtonSelected]}
+                onPress={() => setConditionType('temperature')}
+              >
+                <Text style={styles.conditionTypeButtonText}>Temperature</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.conditionTypeButton, conditionType === 'lux' && styles.conditionTypeButtonSelected]}
+                onPress={() => setConditionType('lux')}
+              >
+                <Text style={styles.conditionTypeButtonText}>Lux</Text>
+              </TouchableOpacity>
+            </View>
+            {conditionType === 'temperature' && (
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                placeholder="Enter temperature"
+                value={temperatureCondition ? temperatureCondition.toString() : ''}
+                onChangeText={(value) => setTemperatureCondition(parseInt(value))}
+              />
+            )}
+            {conditionType === 'lux' && (
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                placeholder="Enter lux"
+                value={luxCondition ? luxCondition.toString() : ''}
+                onChangeText={(value) => setLuxCondition(parseInt(value))}
+              />
+            )}
             <TouchableOpacity style={styles.saveButton} onPress={saveCondition}>
               <Text style={styles.saveButtonText}>Save Condition</Text>
             </TouchableOpacity>
@@ -383,6 +388,27 @@ const styles = StyleSheet.create({
   slider: {
     width: '100%',
     height: 40,
+  },
+  conditionTypeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginVertical: 10,
+  },
+  conditionTypeButton: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    marginHorizontal: 5,
+    borderRadius: 5,
+  },
+  conditionTypeButtonSelected: {
+    backgroundColor: 'gold',
+  },
+  conditionTypeButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   saveButton: {
     backgroundColor: 'gold',

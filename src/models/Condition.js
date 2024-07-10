@@ -8,19 +8,15 @@ const conditionSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['temperature', 'lux', 'both']
+    enum: ['temperature', 'lux']
   },
   temperatureValue: {
     type: Number,
-    required: function() { return this.type === 'temperature' || this.type === 'both'; }
+    required: function() { return this.type === 'temperature'; }
   },
   luxValue: {
     type: Number,
-    required: function() { return this.type === 'lux' || this.type === 'both'; }
-  },
-  value: {
-    type: Number,
-    required: function() { return this.type !== 'both'; }
+    required: function() { return this.type === 'lux'; }
   },
   tintLevel: {
     type: Number,
