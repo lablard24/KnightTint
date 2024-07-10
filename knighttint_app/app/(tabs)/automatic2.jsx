@@ -215,7 +215,7 @@ const Automatic = () => {
     </>
   ) : (
     <>
-      <Text style={{ fontWeight: 'bold' }}>{item.type === 'temperature' ? 'Temperature: ' : 'Lux: '}</Text>{item.type === 'temperature' ? `${item.temperatureValue}°F` : item.luxValue}
+      <Text style={{ fontWeight: 'bold' }}>{item.type === 'temperature' ? 'Temperature: ' : 'Lux: '}</Text>{item.type === 'temperature' ? `${item.temperatureValue} °F` : `${item.luxValue} lx`}
     </>
   )}
 </Text>
