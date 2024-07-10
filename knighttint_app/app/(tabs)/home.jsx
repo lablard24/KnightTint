@@ -106,7 +106,7 @@ const Home = () => {
       onPress={() => navigateToWindowDetail(item.windowNumber)}
     >
       <Text style={styles.buttonText}>Window {item.windowNumber}</Text>
-      <Text style={styles.buttonTextData}>Temperature: {item.Temp}°F   Lux: {item.Lux} lx   Tint Level: {item.Tint}% </Text>
+      <Text style={styles.buttonTextData}>Temperature: {item.Temp}°F  Lux: {item.Lux} lx  Tint Level: {item.Tint}% </Text>
     </TouchableOpacity>
   );
 
