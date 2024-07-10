@@ -25,7 +25,7 @@ export default function Window() {
     };
 
     ws.current.onmessage = (e) => {
-      console.log('WebSocket message received:', e.data);
+    //  console.log('WebSocket message received:', e.data);
       const data = JSON.parse(e.data);
 
       setWindowData(prevData => ({

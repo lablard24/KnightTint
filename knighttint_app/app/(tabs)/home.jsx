@@ -45,7 +45,7 @@ const Home = () => {
     };
 
     ws.current.onmessage = (e) => {
-      console.log('WebSocket message received:', e.data);
+    //  console.log('WebSocket message received:', e.data);
       try {
         const receivedData = JSON.parse(e.data);
     
@@ -158,7 +158,6 @@ const styles = StyleSheet.create({
   },
   navBar: {
     flexDirection: 'row',
-    //alignItems: 'center',
     paddingVertical: 28,
     backgroundColor: 'gold',
   },
