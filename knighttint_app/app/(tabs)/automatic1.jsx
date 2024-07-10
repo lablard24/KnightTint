@@ -32,7 +32,9 @@ const Automatic = () => {
 
     ws.current.onmessage = (e) => {
       const message = JSON.parse(e.data);
+      console.log('Received WebSocket message:', message);
       if (message.type === 'sensorData') {
+        console.log('Received sensor data:', message);
         setTemperature(message.temperature);
         setLux(message.lux);
         updateTintLevel(message.temperature, message.lux);
@@ -62,6 +64,7 @@ const Automatic = () => {
         
         if (contentType && contentType.indexOf('application/json') !== -1) {
           const data = await response.json();
+          console.log('Fetched conditions:', data);
           setConditions(data);
         } else {
           const errorText = await response.text();
@@ -92,12 +95,14 @@ const Automatic = () => {
       }
     });
 
+    console.log('Updated tint level to:', newTintLevel);
     setTintLevel(newTintLevel);
     sendTintLevelToWebSocket(newTintLevel);  
   };
 
   const openEditModal = (index) => {
     const condition = conditions[index];
+    console.log('Editing condition:', condition);
     setTintLevel(condition.tintLevel);
     if (condition.type === 'temperature') {
       setConditionType('temperature');
@@ -125,6 +130,8 @@ const Automatic = () => {
       tintLevel,
     };
 
+    console.log('Saving condition:', newCondition);
+
     try {
       let response;
       if (editingConditionIndex !== null) {
@@ -146,6 +153,7 @@ const Automatic = () => {
       }
 
       const updatedCondition = await response.json();
+      console.log('Saved condition:', updatedCondition);
       if (editingConditionIndex !== null) {
         const updatedConditions = [...conditions];
         updatedConditions[editingConditionIndex] = updatedCondition;
@@ -165,6 +173,7 @@ const Automatic = () => {
 
   const deleteCondition = async (index) => {
     try {
+      console.log('Deleting condition:', conditions[index]);
       await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${conditions[index]._id}`, {
         method: 'DELETE',
       });
@@ -176,6 +185,7 @@ const Automatic = () => {
 
   const sendTintLevelToWebSocket = (tintValue) => {
     if (ws.current) {
+      console.log('Sending tint level to WebSocket:', tintValue);
       ws.current.send(JSON.stringify({ window: currentWindowNumber, action: 'set', value: tintValue }));
       setWindowData(prevData => ({
         ...prevData,
@@ -205,23 +215,23 @@ const Automatic = () => {
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item, index }) => (
             <View style={styles.scheduleItem}>
-                              <Text>
-  <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Condition</Text>
-</Text>
-<Text>
-  {item.type === 'both' ? (
-    <>
-      <Text style={{ fontWeight: 'bold' }}>Temperature: </Text>{item.temperatureValue}°F <Text style={{ fontWeight: 'bold' }}>& Lux: </Text>{item.luxValue}lx
-    </>
-  ) : (
-    <>
-      <Text style={{ fontWeight: 'bold' }}>{item.type === 'temperature' ? 'Temperature: ' : 'Lux: '}</Text>{item.type === 'temperature' ? `${item.temperatureValue} °F` : `${item.luxValue} lx`}
-    </>
-  )}
-</Text>
-<Text>
-  <Text style={{ fontWeight: 'bold' }}>Tint Level: </Text>{item.tintLevel}%
-</Text>
+              <Text>
+                <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Condition</Text>
+              </Text>
+              <Text>
+                {item.type === 'both' ? (
+                  <>
+                    <Text style={{ fontWeight: 'bold' }}>Temperature: </Text>{item.temperatureValue}°F <Text style={{ fontWeight: 'bold' }}>& Lux: </Text>{item.luxValue}lx
+                  </>
+                ) : (
+                  <>
+                    <Text style={{ fontWeight: 'bold' }}>{item.type === 'temperature' ? 'Temperature: ' : 'Lux: '}</Text>{item.type === 'temperature' ? `${item.temperatureValue} °F` : `${item.luxValue} lx`}
+                  </>
+                )}
+              </Text>
+              <Text>
+                <Text style={{ fontWeight: 'bold' }}>Tint Level: </Text>{item.tintLevel}%
+              </Text>
 
               <View style={styles.scheduleActions}>
                 <TouchableOpacity onPress={() => openEditModal(index)}>
