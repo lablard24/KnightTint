@@ -176,7 +176,7 @@ const Automatic = () => {
 
   const sendTintLevelToWebSocket = (tintValue) => {
     if (ws.current) {
-      ws.current.send(JSON.stringify({ window: currentWindowNumber, action: 'auto', value: tintValue }));
+      ws.current.send(JSON.stringify({ window: currentWindowNumber, action: 'set', value: tintValue }));
       setWindowData(prevData => ({
         ...prevData,
         [currentWindowNumber]: {

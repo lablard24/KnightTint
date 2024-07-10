@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   windowButton: {
     padding: 10,
-    margin: 30,
+    margin: 20,
     marginVertical: 5,
     backgroundColor: 'gold',
     borderRadius: 10,
