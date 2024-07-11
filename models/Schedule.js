@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const ScheduleSchema = new mongoose.Schema({
   windowNumber: { type: Number, required: true },
@@ -8,4 +8,6 @@ const ScheduleSchema = new mongoose.Schema({
   tintLevel: { type: Number, required: true },
 });
 
-export const ScheduleModel = mongoose.model("Schedule", ScheduleSchema);
+const ScheduleModel = mongoose.model("Schedule", ScheduleSchema);
+
+module.exports = { ScheduleModel };

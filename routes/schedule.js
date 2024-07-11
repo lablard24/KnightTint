@@ -1,9 +1,8 @@
-import express from 'express';
-import cron from 'node-cron';
-import WebSocket from 'ws';
-import { clients } from '../../index.js'; // Import the clients array
-import { ScheduleModel } from '../../models/Schedule.js';
-
+const express = require('express');
+const { ScheduleModel } = require('../models/Schedule');
+const cron = require('node-cron');
+const { clients } = require('../index');
+const WebSocket = require('ws');
 
 const router = express.Router();
 
@@ -95,4 +94,4 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
-export { router as scheduleRouter };
+module.exports = router;

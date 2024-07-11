@@ -205,9 +205,13 @@ export { router as userRouter };*/
 
 // No bcrypt
 
-import express from 'express';
-import jwt from 'jsonwebtoken';
-import { UserModel } from '../../models/Users.js';
+// import express from 'express';
+// import jwt from 'jsonwebtoken';
+// import { UserModel } from '../../models/Users.js';
+
+const express = require('express');
+const { UserModel } = require('../models/User');
+const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
@@ -333,5 +337,8 @@ router.delete('/rules/:id', async (req, res) => {
   }
 });
 
-export { router as userRouter };
+// export { router as userRouter };
+
+
+module.exports = router;
 

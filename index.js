@@ -60,17 +60,18 @@ app.listen(port, () => {
 
 
 // Remove useNewUrlParser and useUnifiedTopology options
+const bodyParser = require('body-parser');
+const cors = require('cors');
+require('dotenv/config');
+const express = require('express');
+const mongoose = require('mongoose');
+const WebSocket = require('ws');
+const cron = require('node-cron');
+const jwt = require('jsonwebtoken');
 
-import bodyParser from 'body-parser';
-import cors from 'cors';
-import 'dotenv/config';
-import express from 'express';
-import mongoose from 'mongoose';
-import WebSocket from 'ws';
-
-import { conditionRouter } from './src/routes/conditionRouter.js';
-import { scheduleRouter } from './src/routes/schedule.js';
-import { userRouter } from './src/routes/users.js';
+const conditionRouter = require('./routes/conditionRouter');
+const scheduleRouter = require('./routes/schedule');
+const userRouter = require('./routes/users');
 
 const app = express();
 
@@ -93,6 +94,7 @@ mongoose.connect(mongoDbUrl);
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
+
 // WebSocket setup
 const ws = new WebSocket.Server({ port: 8080 });
 let clients = [];
@@ -109,4 +111,4 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-export { clients }; // Export the clients array to use in schedule.js
+module.exports = { clients };
