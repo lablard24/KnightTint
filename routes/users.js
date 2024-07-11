@@ -207,7 +207,7 @@ export { router as userRouter };*/
 
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { UserModel } from '../models/Users.js';
+import { UserModel } from '../../models/Users.js';
 
 const router = express.Router();
 

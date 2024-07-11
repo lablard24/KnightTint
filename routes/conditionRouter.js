@@ -1,5 +1,5 @@
 import express from 'express';
-import { ConditionModel } from '../models/Condition.js';
+import { ConditionModel } from '../../models/Condition.js';
 
 const router = express.Router();
 

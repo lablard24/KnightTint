@@ -1,8 +1,8 @@
 import express from 'express';
 import cron from 'node-cron';
 import WebSocket from 'ws';
-import { clients } from '../index.js'; // Import the clients array
-import { ScheduleModel } from '../models/Schedule.js';
+import { clients } from '../../index.js'; // Import the clients array
+import { ScheduleModel } from '../../models/Schedule.js';
 
 
 const router = express.Router();

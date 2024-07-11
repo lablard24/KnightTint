@@ -68,9 +68,9 @@ import express from 'express';
 import mongoose from 'mongoose';
 import WebSocket from 'ws';
 
-import { conditionRouter } from './routes/conditionRouter.js';
-import { scheduleRouter } from './routes/schedule.js';
-import { userRouter } from './routes/users.js';
+import { conditionRouter } from './src/routes/conditionRouter.js';
+import { scheduleRouter } from './src/routes/schedule.js';
+import { userRouter } from './src/routes/users.js';
 
 const app = express();
 
