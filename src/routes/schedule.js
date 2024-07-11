@@ -4,6 +4,7 @@ import WebSocket from 'ws';
 import { clients } from '../index.js'; // Import the clients array
 import { ScheduleModel } from '../models/Schedule.js';
 
+
 const router = express.Router();
 
 // Get all conditions for a specific window
