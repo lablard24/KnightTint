@@ -66,6 +66,8 @@ import cors from 'cors';
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
+const WebSocket = require('ws');
+const cron = require('node-cron');
 
 
 import { conditionRouter } from './routes/conditionRouter.js';
@@ -93,6 +95,17 @@ const mongoDbUrl = process.env.MONGO_DB_CONN_STRING;
 mongoose.connect(mongoDbUrl); 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
+// WebSocket setup
+const ws = new WebSocket.Server({ port: 8080 });
+let clients = [];
+
+ws.on('connection', (socket) => {
+  clients.push(socket);
+  socket.on('close', () => {
+    clients = clients.filter((client) => client !== socket);
+  });
+});
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
