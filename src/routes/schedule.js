@@ -1,4 +1,7 @@
 import express from 'express';
+import cron from 'node-cron';
+import WebSocket from 'ws';
+import { clients } from '../index.js'; // Import the clients array
 import { ScheduleModel } from '../models/Schedule.js';
 
 const router = express.Router();
@@ -49,7 +52,6 @@ router.put('/conditions/:id', async (req, res) => {
   }
 });
 
-
 // Delete a condition
 router.delete('/conditions/:id', async (req, res) => {
   try {
@@ -78,7 +80,7 @@ cron.schedule('* * * * *', async () => {
   const currentDay = now.getDay(); // Sunday is 0, Monday is 1, and so on
 
   try {
-    const conditions = await Condition.find({
+    const conditions = await ScheduleModel.find({
       hour: currentHour,
       minute: currentMinute,
       days: currentDay,
@@ -92,6 +94,4 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
-
 export { router as scheduleRouter };
-

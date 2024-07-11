@@ -66,9 +66,7 @@ import cors from 'cors';
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
-const WebSocket = require('ws');
-const cron = require('node-cron');
-
+import WebSocket from 'ws';
 
 import { conditionRouter } from './routes/conditionRouter.js';
 import { scheduleRouter } from './routes/schedule.js';
@@ -87,7 +85,6 @@ app.get('/', (req, res) => {
 
 app.use("/auth", userRouter);
 app.use("/api", scheduleRouter);
-//app.use(scheduleRouter);
 app.use(conditionRouter);
 
 const mongoDbUrl = process.env.MONGO_DB_CONN_STRING;
@@ -111,3 +108,5 @@ const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+export { clients }; // Export the clients array to use in schedule.js

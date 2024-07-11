@@ -8,4 +8,4 @@ const ScheduleSchema = new mongoose.Schema({
   tintLevel: { type: Number, required: true },
 });
 
-export const ScheduleModel = mongoose.model("schedule", ScheduleSchema);
+export const ScheduleModel = mongoose.model("Schedule", ScheduleSchema);
