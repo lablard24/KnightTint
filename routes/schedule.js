@@ -1,7 +1,7 @@
 const express = require('express');
 const { ScheduleModel } = require('../models/Schedule');
 const cron = require('node-cron');
-const { clients } = require('../index');
+const { clients } = require('../index.cjs');
 const WebSocket = require('ws');
 
 const router = express.Router();
