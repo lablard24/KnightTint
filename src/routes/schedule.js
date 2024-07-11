@@ -3,6 +3,7 @@ import { ScheduleModel } from '../models/Schedule.js';
 
 const router = express.Router();
 
+/*
 // Route to fetch schedules
 router.get('/schedules', async (req, res) => {
   try {
@@ -63,5 +64,63 @@ router.put('/update-schedule', async (req, res) => {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
+*/
+
+// Get all conditions for a specific window
+router.get('/conditions/:windowNumber', async (req, res) => {
+  try {
+    const conditions = await ScheduleModel.find({ windowNumber: req.params.windowNumber });
+    res.json(conditions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create a new condition
+router.post('/conditions', async (req, res) => {
+  const { windowNumber, hour, minute, days, tintLevel } = req.body;
+
+  const newCondition = new ScheduleModel({
+    windowNumber,
+    hour,
+    minute,
+    days,
+    tintLevel,
+  });
+
+  try {
+    const savedCondition = await newCondition.save();
+    res.json(savedCondition);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update an existing condition
+router.put('/conditions/:id', async (req, res) => {
+  const { windowNumber, hour, minute, days, tintLevel } = req.body;
+
+  try {
+    const updatedCondition = await ScheduleModel.findByIdAndUpdate(
+      req.params.id,
+      { windowNumber, hour, minute, days, tintLevel },
+      { new: true }
+    );
+    res.json(updatedCondition);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a condition
+router.delete('/conditions/:id', async (req, res) => {
+  try {
+    await ScheduleModel.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Condition deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 export { router as scheduleRouter };
+
