@@ -86,8 +86,8 @@ app.get('/', (req, res) => {
 });
 
 app.use("/auth", userRouter);
-//app.use("/api", scheduleRouter);
-app.use(scheduleRouter);
+app.use("/api", scheduleRouter);
+//app.use(scheduleRouter);
 app.use(conditionRouter);
 
 const mongoDbUrl = process.env.MONGO_DB_CONN_STRING;
