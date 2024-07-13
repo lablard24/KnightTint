@@ -1,4 +1,4 @@
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -8,6 +8,7 @@ import FormField from '../components/FormField';
 import { LOGIN_ENDPOINT, SERVER_DOMAIN, SERVER_PROTOCOL } from '../config';
 
 const SignIn = () => {
+  const router = useRouter();
   const [form, setForm] = useState({
     username: '',
     password: ''

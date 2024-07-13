@@ -22,8 +22,8 @@ export default function App() {
 
           <CustomButton
             title="Get Started"
-          // handlePress={() => router.push('/signIn')}
-           handlePress={() => router.push('/window1')}
+         handlePress={() => router.push('/signIn')}
+         // handlePress={() => router.push('/home')}
             containerStyles={styles.button}
           />
         </View>

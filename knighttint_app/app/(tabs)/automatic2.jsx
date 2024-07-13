@@ -68,10 +68,10 @@ const Automatic = () => {
   useEffect(() => {
     const fetchConditions = async () => {
       try {
-        //console.log('Fetching conditions for windowNumber:', windowNumber);
+        console.log('Fetching conditions for windowNumber:', windowNumber);
         const response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${windowNumber}`);
         const data = await response.json();
-       // console.log('Parsed response data:', data);
+        console.log('Parsed response data:', data);
         setConditions(data);
         console.log('Conditions set to:', data);
         setConditionsLoaded(true);
@@ -83,16 +83,17 @@ const Automatic = () => {
     fetchConditions();
   }, [windowNumber]);
 
-  
+
   useEffect(() => {
     if (conditionsLoaded && temperature !== null && lux !== null) {
       updateTintLevel(temperature, lux, conditions);
     }
   }, [temperature, lux, conditionsLoaded, conditions]);
-  
+
 
   const updateTintLevel = (temperature, lux, conditions) => {
-    console.log('Updating tint level with:', { temperature, lux, conditions });
+
+    setPreviousTintLevel(tintLevel);
     if (conditions.length === 0) {
       console.log('No conditions available to update tint level.');
       return;
@@ -103,31 +104,38 @@ const Automatic = () => {
 
     conditions.forEach((condition) => {
       console.log('Evaluating condition:', condition);
-      if (condition.type === 'temperature' && temperature < condition.temperatureValue) {
-        console.log(`${temperature}  ${condition.temperatureCondition}   ${condition.temperatureValue}`)
+      if (condition.type === 'temperature' && temperature >= condition.temperatureValue) {
+        console.log(`Sensor temp ${temperature}  is greater than equal to User input ${condition.temperatureValue}`)
+        setPreviousTintLevel(tintLevel); 
         newTintLevel = Math.max(newTintLevel, condition.tintLevel);
         console.log(`Updated newTintLevel (temperature condition): ${newTintLevel}`);
-
         setTintLevel(newTintLevel);
-        console.log('Final newTintLevel set to:', newTintLevel);
         sendTintLevelToWebSocket(newTintLevel);
 
-      } else if (condition.type === 'lux' && lux < condition.luxValue) {
+      }  else if (condition.type === 'temperature' && temperature < condition.temperatureValue) {
+        console.log(`Sensor temp ${temperature}  is less than  User input ${condition.temperatureValue}`)
+        console.log('Window is set to its previous value:', previousTintLevel);
+        setTintLevel(previousTintLevel); 
+        sendTintLevelToWebSocket(previousTintLevel);
+      
+      }   if (condition.type === 'lux' && lux >= condition.luxValue) {
+        console.log(`Sensor lux ${lux}  is greater than equal to User input ${condition.luxValue}`)
+        setPreviousTintLevel(tintLevel); 
         newTintLevel = Math.max(newTintLevel, condition.tintLevel);
         console.log(`Updated newTintLevel (lux condition): ${newTintLevel}`);
-
         setTintLevel(newTintLevel);
-        console.log('Final newTintLevel set to:', newTintLevel);
         sendTintLevelToWebSocket(newTintLevel);
 
-      } else {
-        console.log('Temperature or lux values are less than expected.');
-      }
+      }  else if (condition.type === 'lux' && lux < condition.luxValue) {
+        console.log(`Sensor lux ${lux}  is less than  User input ${condition.luxValue}`)
+        console.log('Window is set to its previous value:', previousTintLevel);
+        setTintLevel(previousTintLevel); 
+        sendTintLevelToWebSocket(previousTintLevel);
+      } 
+      
     });
 
-    
   };
-
 
   const openEditModal = (index) => {
     const condition = conditions[index];
@@ -144,7 +152,7 @@ const Automatic = () => {
     setEditingConditionIndex(index);
     setModalVisible(true);
   };
-  
+
 
 
   const openAddModal = () => {
@@ -155,10 +163,6 @@ const Automatic = () => {
     setEditingConditionIndex(null);
     setModalVisible(true);
   };
-
-
-
-
 
   const saveCondition = async () => {
     let newCondition = {
@@ -224,7 +228,7 @@ const Automatic = () => {
     }
   };
 
-  
+
 
   const taskManager = (label) => {
     setFocusedItem(label);
@@ -520,7 +524,7 @@ const styles = StyleSheet.create({
   modalButtonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    
+
   },
   modalButton: {
     paddingVertical: 10,

@@ -61,6 +61,32 @@ const TabLayout = () => {
         headerShown: false
         }}/>
 
+
+<Stack.Screen 
+        name="sync"
+        options={{
+        headerShown: false
+        }}/>
+
+<Stack.Screen 
+        name="privacy"
+        options={{
+        headerShown: false
+        }}/>
+
+<Stack.Screen 
+        name="schedule"
+        options={{
+        headerShown: false
+        }}/>
+
+
+<Stack.Screen 
+        name="automatic"
+        options={{
+        headerShown: false
+        }}/>
+
     </Stack>
    </>
   )
