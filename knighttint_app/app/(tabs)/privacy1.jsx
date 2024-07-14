@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ProgressCircle from 'react-native-progress-circle';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -55,6 +55,17 @@ export default function Privacy() {
 
   const backHome = () => {
     router.replace(`/window${currentWindowNumber}`);
+  };
+
+  // Function to get temperature icon based on current temperature
+  const getTemperatureIcon = (temp) => {
+    if (temp <= 55) {
+      return require('../assets/images/cold.png'); 
+    } else if (temp <= 85) {
+      return require('../assets/images/warm.png'); 
+    } else {
+      return require('../assets/images/hot.png'); 
+    }
   };
 
   const taskManager = (label) => {
@@ -112,11 +123,27 @@ export default function Privacy() {
         <Text style={styles.navBarText}>Privacy Mode for Window {currentWindowNumber}</Text>
       </View>
 
-      <View style={styles.container}>
-        <Text style={styles.label}>Temperature: {currentWindowData.Temp} °F</Text>
-        <Text style={styles.label}>LUX: {currentWindowData.Lux} lx</Text>
-        <Text style={styles.label}>Tint level: {currentWindowData.Tint}%</Text>
-      </View>
+      {/* <View style={styles.container}>
+      <Text style={styles.label}>Temperature: {Math.round(currentWindowData.Temp)} °F</Text>
+        <Text style={styles.label}>LUX: {Math.round(currentWindowData.Lux)} lx</Text>
+        <Text style={styles.label}>Tint level: {Math.round(currentWindowData.Tint)}%</Text>
+      </View> */}
+
+<View style={styles.container}>
+     
+     <View style={styles.temperatureContainer}>
+     <Text>
+     <Text style={{ fontWeight: 'bold', fontSize: 16,}}>Temperature:</Text> {Math.round(currentWindowData.Temp)} °F 
+     <Text>   </Text><Image source={getTemperatureIcon(Math.round(currentWindowData.Temp))} style={styles.icon} />
+     </Text>
+     </View>
+     <Text>
+     <Text style={{ fontWeight: 'bold', fontSize: 16,}}>Lux: </Text>{Math.round(currentWindowData.Lux)} lx
+     {'\n'}
+     <Text style={{ fontWeight: 'bold', fontSize: 16,}}>Tint level: </Text>{Math.round(currentWindowData.Tint)}%
+     </Text>
+     
+   </View>
 
       <View style={styles.content}>
         <ProgressCircle
@@ -198,18 +225,34 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   container: {
-    flex: 1,
-    padding: 20,
+    backgroundColor: '#fff',       
+    borderRadius: 10,              
+    shadowColor: '#000',           
+    shadowOffset: {                
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,           
+    shadowRadius: 3.84,            
+    elevation: 5,                 
+    padding: 20,                   
+    margin: 10,                    
+  },
+  temperatureContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   label: {
-    fontSize: 20,
-    margin: 10,
-    color: '#003366',
+    fontSize: 16,                           
+    color: '#333',                
+    marginBottom: 5,               
   },
   content: {
     flex: 1,
     alignItems: 'center',
     paddingBottom: 180,
+    paddingTop:50,
   },
   progressText: {
     marginTop: 10,
@@ -255,6 +298,10 @@ const styles = StyleSheet.create({
   },
   taskbarLabelFocused: {
     color: 'gold',
+  },
+  icon: {
+    width: 24,                    
+    height: 24,                           
   },
 });
 

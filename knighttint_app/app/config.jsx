@@ -1,5 +1,5 @@
 
-export const WEBSOCKET_IP = 'ws://192.168.0.197:81/';
+export const WEBSOCKET_IP = 'ws://192.168.0.196:81/';
 //export const SERVER_PROTOCOL = 'https'; 
 //export const SERVER_DOMAIN = 'knighttint-0ea6e634bb48.herokuapp.com'
 export const SERVER_PORT = process.env.PORT || '3001'; 

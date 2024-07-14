@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ProgressCircle from 'react-native-progress-circle';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -375,6 +375,17 @@ export default function Window() {
 
   const getCurrentWindowData = (windowNumber) => windowData[windowNumber] || { Temp: '-', Lux: '-', Tint: 0 };
 
+   // Function to get temperature icon based on current temperature
+   const getTemperatureIcon = (temp) => {
+    if (temp <= 55) {
+      return require('../assets/images/cold.png'); 
+    } else if (temp <= 85) {
+      return require('../assets/images/warm.png'); 
+    } else {
+      return require('../assets/images/hot.png'); 
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#161622" style="dark" />
@@ -390,10 +401,20 @@ export default function Window() {
           const currentWindowData = getCurrentWindowData(windowNumber);
           return (
             <View key={windowNumber} style={styles.windowContainer}>
-             <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Window {windowNumber}</Text>
-              <Text style={styles.label}>Temperature: {currentWindowData.Temp} °F</Text>
-              <Text style={styles.label}>LUX: {currentWindowData.Lux} lx</Text>
-              <Text style={styles.label}>Tint level: {currentWindowData.Tint}%</Text>
+               <Text style={styles.windowTitle}>Window {windowNumber}</Text>
+             
+     <View style={styles.temperatureContainer}>
+     <Text>
+     <Text style={{ fontWeight: 'bold', fontSize: 12,}}>Temperature:</Text> {Math.round(currentWindowData.Temp)} °F 
+     <Text>   </Text><Image source={getTemperatureIcon(Math.round(currentWindowData.Temp))} style={styles.icon} />
+     </Text>
+     </View>
+     <Text>
+     <Text style={{ fontWeight: 'bold', fontSize: 12,}}>Lux: </Text>{Math.round(currentWindowData.Lux)} lx
+     {'\n'}
+     <Text style={{ fontWeight: 'bold', fontSize: 12,}}>Tint level: </Text>{Math.round(currentWindowData.Tint)}%
+     </Text>
+
               <View style={styles.content}>
                 <ProgressCircle
                   percent={currentWindowData.Tint}
@@ -477,24 +498,39 @@ const styles = StyleSheet.create({
   navBarButton: {
     padding: 10,
   },
+  
   container: {
-    flex: 1,
-    padding: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: 'row', 
+    justifyContent: 'space-around',
+    backgroundColor: '#fff',       
+    borderRadius: 10,              
+    shadowColor: '#000',           
+    shadowOffset: {                
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,           
+    shadowRadius: 3.84,            
+    elevation: 5,                 
+    padding: 20,                   
+    margin: 10,                    
   },
-  windowContainer: {
-    flex: 1,
+  
+  temperatureContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 10,
   },
   label: {
-    fontSize: 16,
-    margin: 5,
-    color: '#003366',
+    fontSize: 16,                           
+    color: '#333',                
+    marginBottom: 5,               
   },
   content: {
+    flex: 1,
     alignItems: 'center',
-    marginVertical: 20,
+    paddingBottom: 180,
+    paddingTop:50,
   },
   progressText: {
     marginTop: 10,
@@ -504,7 +540,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 240,
+    paddingVertical: 90,
     paddingHorizontal: 10,
   },
   button: {
@@ -540,6 +576,15 @@ const styles = StyleSheet.create({
   },
   taskbarLabelFocused: {
     color: 'gold',
+  },
+  icon: {
+    width: 24,                    
+    height: 24,                           
+  },
+  windowTitle: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    textAlign: 'center', // Center text
   },
 });
 
