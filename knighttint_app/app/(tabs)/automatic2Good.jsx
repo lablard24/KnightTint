@@ -21,25 +21,32 @@ const Automatic = () => {
   const [conditionsLoaded, setConditionsLoaded] = useState(false);
   const [previousTintLevel, setPreviousTintLevel] = useState(0);
 
-  
-  const windowNumber = 1;
+  const windowNumber = 2;
 
   const ws = useRef(null);
 
   useEffect(() => {
     ws.current = new WebSocket(WEBSOCKET_IP);
 
-   ws.current.onopen = () => {
+    ws.current.onopen = () => {
       console.log('WebSocket connected');
     };
 
     ws.current.onmessage = (e) => {
       const message = JSON.parse(e.data);
+      //console.log('Received WebSocket message:', message);
       if (message.type === 'data') {
+        //console.log('Received message of type data:', message);
         const { Temp, Lux, Wind } = message;
-        if (Wind === 1 || Wind === 2) {
+        //console.log('Extracted values:', { Temp, Lux, Wind });
+        if (Wind === windowNumber) {
+        //  console.log(`Wind (${Wind}) matches windowNumber (${windowNumber})`);
           setTemperature(Temp);
+        //  console.log('Temperature set to:', Temp);
           setLux(Lux);
+        //  console.log('Lux set to:', Lux);
+        } else {
+       //   console.log(`Wind (${Wind}) does not match windowNumber (${windowNumber})`);
         }
       }
     };
@@ -48,42 +55,26 @@ const Automatic = () => {
       console.error('WebSocket error:', e.message);
     };
 
-    /*ws.current.onclose = () => {
+    ws.current.onclose = () => {
       console.log('WebSocket closed');
-    };*/
+    };
 
     return () => {
-      /*if (ws.current) {
+      if (ws.current) {
         ws.current.close();
-      }*/
-        console.log('WebSocket open', e.message);
-    };
-  }, []);
-
-  /*useEffect(() => {
-    const fetchConditions = async () => {
-      try {
-        const response1 = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/1`);
-        const data1 = await response1.json();
-        const response2 = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/2`);
-        const data2 = await response2.json();
-        const combinedData = [...data1, ...data2];
-        setConditions(combinedData);
-        setConditionsLoaded(true);
-      } catch (error) {
-        console.error('Fetch error:', error);
       }
     };
-
-    fetchConditions();
-  }, []);*/
+  }, []);
 
   useEffect(() => {
     const fetchConditions = async () => {
       try {
-        const response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/1`);
+        console.log('Fetching conditions for windowNumber:', windowNumber);
+        const response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${windowNumber}`);
         const data = await response.json();
+        console.log('Parsed response data:', data);
         setConditions(data);
+        console.log('Conditions set to:', data);
         setConditionsLoaded(true);
       } catch (error) {
         console.error('Fetch error:', error);
@@ -91,7 +82,7 @@ const Automatic = () => {
     };
 
     fetchConditions();
-  }, []);
+  }, [windowNumber]);
 
 
   useEffect(() => {
@@ -163,6 +154,8 @@ const Automatic = () => {
     setModalVisible(true);
   };
 
+
+
   const openAddModal = () => {
     setTintLevel(0);
     setConditionType('temperature');
@@ -219,6 +212,17 @@ const Automatic = () => {
     }
   };
 
+  /*const deleteCondition = async (index) => {
+    try {
+      await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${conditions[index]._id}`, {
+        method: 'DELETE',
+      });
+      setConditions(conditions.filter((_, i) => i !== index));
+    } catch (error) {
+      console.error(error);
+    }
+  };*/
+
   const deleteCondition = async (index) => {
     try {
       await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/conditions/${conditions[index]._id}`, {
@@ -229,28 +233,30 @@ const Automatic = () => {
       console.error(error);
     }
   };
+  
 
   const sendTintLevelToWebSocket = (tintValue) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ window: 1, action: 'set', value: tintValue }));
-      ws.current.send(JSON.stringify({ window: 2, action: 'set', value: tintValue }));
+      ws.current.send(JSON.stringify({ window: windowNumber, action: 'set', value: tintValue }));
     }
   };
+
+
 
   const taskManager = (label) => {
     setFocusedItem(label);
     switch (label) {
       case 'Privacy':
-        router.replace(`/privacy`);
+        router.replace(`/privacy${windowNumber}`);
         break;
       case 'Schedule':
-        router.replace(`/schedule`);
+        router.replace(`/schedule${windowNumber}`);
         break;
       case 'Automatic':
-        router.replace(`/automatic`);
+        router.replace(`/automatic${windowNumber}`);
         break;
       default:
-        router.replace(`/sync`);
+        router.replace(`/window${windowNumber}`);
     }
   };
 
@@ -258,10 +264,10 @@ const Automatic = () => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#161622" style="dark" />
       <View style={styles.navBar}>
-        <TouchableOpacity style={styles.navBarButton} onPress={() => router.replace(`/sync`)}>
+        <TouchableOpacity style={styles.navBarButton} onPress={() => router.replace(`/window${windowNumber}`)}>
           <Icon name="chevron-back-sharp" size={30} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.navBarText}>Synchronization for Automatic Mode</Text>
+        <Text style={styles.navBarText}>Automatic for Window {windowNumber}</Text>
         <TouchableOpacity style={styles.plusButton} onPress={openAddModal}>
           <Icon name="add-circle-sharp" size={30} color="#000" />
         </TouchableOpacity>
@@ -272,7 +278,9 @@ const Automatic = () => {
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item, index }) => (
             <View style={styles.scheduleItem}>
+              <Text>
               <Text style={styles.buttonText}>Condition</Text>
+              </Text>
               <Text>
                 <Text style={{ fontWeight: 'bold' }}>{item.type === 'temperature' ? 'Temperature: ' : '             Lux: '}</Text>
                 {item.type === 'temperature' ? `${item.temperatureValue} °F` : `${item.luxValue} lx`}{' '}
@@ -290,8 +298,7 @@ const Automatic = () => {
           )}
         />
       </View>
-
-<Modal visible={isModalVisible} animationType="slide" transparent={true}>
+      <Modal visible={isModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Condition</Text>
@@ -376,8 +383,9 @@ const Automatic = () => {
             </View>
           </View>
         </View>
-        </Modal>
-        <View style={styles.taskbar}>
+      </Modal>
+
+      <View style={styles.taskbar}>
         <TaskBarItem
           icon="logo-windows"
           label="Privacy"
@@ -401,7 +409,6 @@ const Automatic = () => {
   );
 };
 
-
 const TaskBarItem = ({ icon, label, isFocused, onPress }) => (
   <TouchableOpacity
     style={[styles.taskbarItem, isFocused && styles.taskbarItemFocused]}
@@ -413,7 +420,6 @@ const TaskBarItem = ({ icon, label, isFocused, onPress }) => (
     </Text>
   </TouchableOpacity>
 );
-
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -428,14 +434,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'gold',
   },
   navBarText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#000',
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   plusButton: {
     backgroundColor: 'gold',
     borderRadius: 10,
-    paddingHorizontal: 15,
+    paddingHorizontal: 10,
   },
   content: {
     flex: 1,

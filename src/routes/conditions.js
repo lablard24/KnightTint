@@ -1,12 +1,12 @@
 import express from 'express';
-import Condition from '../models/Condition.js';
+import { ConditionModel } from '../models/Condition.js';
 
 const router = express.Router();
 
 // Get all conditions for a specific window
 router.get('/:windowNumber', async (req, res) => {
   try {
-    const conditions = await Condition.find({ windowNumber: req.params.windowNumber });
+    const conditions = await ConditionModel.find({ windowNumber: req.params.windowNumber });
     res.json(conditions);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -16,7 +16,7 @@ router.get('/:windowNumber', async (req, res) => {
 // Create a new condition
 router.post('/', async (req, res) => {
   const { windowNumber, type, temperatureValue, luxValue, tintLevel } = req.body;
-  const newCondition = new Condition({
+  const newCondition = new ConditionModel({
     windowNumber,
     type,
     temperatureValue,
@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
 // Update an existing condition
 router.put('/:id', async (req, res) => {
   try {
-    const updatedCondition = await Condition.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedCondition = await ConditionModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!updatedCondition) {
       return res.status(404).json({ message: 'Condition not found' });
     }
@@ -47,15 +47,45 @@ router.put('/:id', async (req, res) => {
 
 // Delete a condition
 router.delete('/:id', async (req, res) => {
+  console.log('DELETE request received');
   try {
-    const deletedCondition = await Condition.findByIdAndDelete(req.params.id);
+    const deletedCondition = await ConditionModel.findByIdAndDelete(req.params.id);
     if (!deletedCondition) {
+      console.log('Condition not found');
       return res.status(404).json({ message: 'Condition not found' });
     }
     res.json({ message: 'Condition deleted' });
   } catch (error) {
+    console.error('Error deleting condition:', error);
     res.status(500).json({ message: error.message });
   }
 });
 
-export default router;
+/*
+// Delete a condition by window number and ID
+router.delete('/:windowNumber/:id', async (req, res) => {
+  try {
+    const { windowNumber, id } = req.params;
+    console.log(`Attempting to delete condition with windowNumber: ${windowNumber} and id: ${id}`);
+    
+    const deletedCondition = await Condition.findOneAndDelete({ windowNumber, _id: id });
+    
+    if (!deletedCondition) {
+      console.log('Condition not found');
+      return res.status(404).json({ message: 'Condition not found' });
+    }
+    
+    console.log('Condition deleted:', deletedCondition);
+    res.json({ message: 'Condition deleted' });
+  } catch (error) {
+    console.error('Error deleting condition:', error);
+    res.status(500).json({ message: error.message });
+  }
+});*/
+
+
+
+
+
+export { router as conditionRouter };
+

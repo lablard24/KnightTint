@@ -364,9 +364,9 @@ export default function Window() {
 
   // Function to get temperature icon based on current temperature
   const getTemperatureIcon = (temp) => {
-    if (temp <= 55) {
+    if (temp <= 67) {
       return require('../assets/images/cold.png'); 
-    } else if (temp <= 85) {
+    } else if (temp <= 77) {
       return require('../assets/images/warm.png'); 
     } else {
       return require('../assets/images/hot.png'); 

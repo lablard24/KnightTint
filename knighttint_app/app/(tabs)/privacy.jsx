@@ -320,14 +320,14 @@ export default function Window() {
       console.log('WebSocket error: ', e.message);
     };
 
-    ws.current.onclose = (e) => {
+   /* ws.current.onclose = (e) => {
       console.log('WebSocket connection closed');
-    };
+    };*/
 
     return () => {
-      if (ws.current) {
+      /*if (ws.current) {
         ws.current.close();
-      }
+      }*/
     };
   }, []);
 
@@ -385,16 +385,15 @@ export default function Window() {
   const getCurrentWindowData = (windowNumber) => windowData[windowNumber] || { Temp: '-', Lux: '-', Tint: 0 };
 
      // Function to get temperature icon based on current temperature
-     const getTemperatureIcon = (temp) => {
-      if (temp <= 55) {
-        return require('../assets/images/cold.png'); 
-      } else if (temp <= 85) {
-        return require('../assets/images/warm.png'); 
-      } else {
-        return require('../assets/images/hot.png'); 
-      }
-    };
-  
+  const getTemperatureIcon = (temp) => {
+    if (temp <= 67) {
+      return require('../assets/images/cold.png'); 
+    } else if (temp <= 77) {
+      return require('../assets/images/warm.png'); 
+    } else {
+      return require('../assets/images/hot.png'); 
+    }
+  };
   
 
   return (

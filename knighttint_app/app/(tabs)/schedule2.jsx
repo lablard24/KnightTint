@@ -1,450 +1,3 @@
-/*// Everything works fine
-import Slider from '@react-native-community/slider';
-import { Picker } from '@react-native-picker/picker';
-import { router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useRef, useState } from 'react';
-import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { WEBSOCKET_IP } from '../config';
-
-const Schedule = () => {
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [focusedItem, setFocusedItem] = useState('Schedule');
-  const [hour, setHour] = useState('12');
-  const [minute, setMinute] = useState('00');
-  const [ampm, setAmpm] = useState('AM');
-  const [tintLevel, setTintLevel] = useState(0);
-  const [repeatDays, setRepeatDays] = useState([]);
-  const [schedules, setSchedules] = useState([]);
-  const [editingScheduleId, setEditingScheduleId] = useState(null);
-  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-  const windowNumber = 2; // Replace with your hardcoded window number
-
-  const ws = useRef(null);
-
-  useEffect(() => {
-    ws.current = new WebSocket(WEBSOCKET_IP);
-    
-    ws.current.onopen = () => {
-      console.log('WebSocket connected');
-      fetchSchedules();
-    };
-
-    ws.current.onmessage = (e) => {
-      const message = JSON.parse(e.data);
-      if (message.type === 'schedules') {
-        const updatedSchedules = message.schedules
-          .filter(schedule => schedule.windowNumber === windowNumber)
-          .map(schedule => {
-            const { hour, minute, ampm } = convertTo12Hour(`${schedule.hour}:${schedule.minute}`);
-            return { ...schedule, hour, minute, ampm };
-          });
-        setSchedules(updatedSchedules);
-      } else if (message.type === 'update') {
-        fetchSchedules(); // Refresh schedules on any update
-      }
-    };
-
-    ws.current.onerror = (e) => {
-      console.error('WebSocket error:', e.message);
-    };
-
-    ws.current.onclose = (e) => {
-      console.log('WebSocket closed');
-    };
-
-    return () => {
-      ws.current.close();
-    };
-  }, []);
-
-  const fetchSchedules = () => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ type: 'getSchedules', windowNumber }));
-    } else {
-      console.error('WebSocket is not open');
-    }
-  };
-
-  const toggleDay = (day) => {
-    setRepeatDays((prev) =>
-      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
-    );
-  };
-
-  const backHome = () => {
-    router.replace(`/window${windowNumber}`);
-  };
-
-  const taskManager = (label) => {
-    setFocusedItem(label);
-    switch (label) {
-      case 'Privacy':
-        router.replace(`/privacy${windowNumber}`);
-        break;
-      case 'Schedule':
-        router.replace(`/schedule${windowNumber}`);
-        break;
-      case 'Automatic':
-        router.replace(`/automatic${windowNumber}`);
-        break;
-      default:
-        router.replace(`/window${windowNumber}`);
-    }
-  };
-
-
-  const convertTo24Hour = (hour, minute, ampm) => {
-    let hours24 = parseInt(hour, 10);
-    if (ampm === 'PM' && hours24 !== 12) {
-      hours24 += 12;
-    } else if (ampm === 'AM' && hours24 === 12) {
-      hours24 = 0;
-    }
-    return `${String(hours24).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-  };
-
-  const convertTo12Hour = (time24) => {
-    const [hours, minutes] = time24.split(':');
-    let hours12 = parseInt(hours, 10);
-    const ampm = hours12 >= 12 ? 'PM' : 'AM';
-    hours12 = hours12 % 12 || 12;
-    return { hour: String(hours12).padStart(2, '0'), minute: String(minutes).padStart(2, '0'), ampm };
-  };
-
-  const saveSchedule = () => {
-    const time24 = convertTo24Hour(hour, minute, ampm);
-    const [hours24, minutes24] = time24.split(':');
-    const newSchedule = {
-      type: editingScheduleId ? 'edit' : 'schedule',
-      windowNumber,
-      hour: hours24,
-      minute: minutes24,
-      tintLevel,
-      repeatDays,
-    };
-    if (editingScheduleId) {
-      newSchedule.id = editingScheduleId;
-    }
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify(newSchedule));
-      setModalVisible(false);
-      // Update state immediately
-      if (editingScheduleId) {
-        setSchedules((prev) =>
-          prev.map((schedule) =>
-            schedule._id === editingScheduleId ? { ...schedule, hour, minute, ampm, tintLevel, repeatDays } : schedule
-          )
-        );
-      } else {
-        setSchedules((prev) => [
-          ...prev,
-          { ...newSchedule, _id: Date.now().toString(), hour, minute, ampm },
-        ]);
-      }
-      setEditingScheduleId(null);
-    } else {
-      console.error('WebSocket is not open');
-    }
-  };
-
-  const editSchedule = (index) => {
-    const schedule = schedules[index];
-    const { hour, minute, ampm } = convertTo12Hour(`${schedule.hour}:${schedule.minute}`);
-    setHour(hour);
-    setMinute(minute);
-    setAmpm(ampm);
-    setTintLevel(schedule.tintLevel);
-    setRepeatDays(schedule.repeatDays);
-    setEditingScheduleId(schedule._id);
-    setModalVisible(true);
-  };
-
-  const deleteSchedule = (index) => {
-    const scheduleToDelete = schedules[index];
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ type: 'delete', id: scheduleToDelete._id, windowNumber }));
-      setSchedules(schedules.filter((_, i) => i !== index)); // Update state immediately
-    } else {
-      console.error('WebSocket is not open');
-    }
-  };
-
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar backgroundColor="#161622" style="dark" />
-      <View style={styles.navBar}>
-        <TouchableOpacity style={styles.navBarButton} onPress={backHome}>
-          <Icon name="chevron-back-sharp" size={30} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.navBarText}>Schedule for Window {windowNumber}</Text>
-        <TouchableOpacity style={styles.plusButton} onPress={() => setModalVisible(true)}>
-          <Icon name="add-circle-sharp" size={30} color="#000" />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.content}>
-        <FlatList
-          data={schedules}
-          keyExtractor={(item) => item._id}
-          renderItem={({ item, index }) => (
-            <View style={styles.scheduleItem}>
-              <Text>Time: {item.hour}:{item.minute} {item.ampm}</Text>
-              <Text>Tint Level: {item.tintLevel}%</Text>
-              <Text>Repeat: {item.repeatDays.join(', ')}</Text>
-              <View style={styles.scheduleActions}>
-                <TouchableOpacity onPress={() => editSchedule(index)}>
-                  <Icon name="create-outline" size={25} color="#000" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => deleteSchedule(index)}>
-                  <Icon name="trash-outline" size={25} color="#000" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-        />
-      </View>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isModalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.label}>Time</Text>
-            <Picker
-              selectedValue={hour}
-              style={styles.picker}
-              onValueChange={(itemValue) => setHour(itemValue)}
-            >
-              {Array.from({ length: 12 }, (_, i) => {
-                const hourValue = String(i + 1).padStart(2, '0');
-                return (
-                  <Picker.Item key={i} label={`${hourValue}`} value={`${hourValue}`} />
-                );
-              })}
-            </Picker>
-            <Picker
-              selectedValue={minute}
-              style={styles.picker}
-              onValueChange={(itemValue) => setMinute(itemValue)}
-            >
-              {Array.from({ length: 60 }, (_, i) => {
-                const minuteValue = String(i).padStart(2, '0');
-                return (
-                  <Picker.Item key={i} label={`${minuteValue}`} value={`${minuteValue}`} />
-                );
-              })}
-            </Picker>
-            <Picker
-              selectedValue={ampm}
-              style={styles.picker}
-              onValueChange={(itemValue) => setAmpm(itemValue)}
-            >
-              <Picker.Item label="AM" value="AM" />
-              <Picker.Item label="PM" value="PM" />
-            </Picker>
-            <Text style={styles.label}>Tint Level: {tintLevel}%</Text>
-            <Slider
-              style={styles.slider}
-              minimumValue={0}
-              maximumValue={100}
-              step={1}
-              value={tintLevel}
-              onValueChange={(value) => setTintLevel(value)}
-            />
-            <Text style={styles.label}>Repeat Days</Text>
-            <View style={styles.daysContainer}>
-              {daysOfWeek.map((day, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.dayButton,
-                    repeatDays.includes(day) && styles.dayButtonSelected,
-                  ]}
-                  onPress={() => toggleDay(day)}
-                >
-                  <Text>{day}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TouchableOpacity style={styles.saveButton} onPress={saveSchedule}>
-              <Text style={styles.saveButtonText}>Save Schedule</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <View style={styles.taskbar}>
-        <TaskBarItem
-          icon="logo-windows"
-          label="Privacy"
-          isFocused={focusedItem === 'Privacy'}
-          onPress={taskManager}
-        />
-        <TaskBarItem
-          icon="calendar"
-          label="Schedule"
-          isFocused={focusedItem === 'Schedule'}
-          onPress={taskManager}
-        />
-        <TaskBarItem
-          icon="aperture-sharp"
-          label="Automatic"
-          isFocused={focusedItem === 'Automatic'}
-          onPress={taskManager}
-        />
-      </View>
-    </SafeAreaView>
-  );
-}
-
-const TaskBarItem = ({ icon, label, isFocused, onPress }) => (
-  <TouchableOpacity
-    style={[styles.taskbarItem, isFocused && styles.taskbarItemFocused]}
-    onPress={() => onPress(label)}
-  >
-    <Icon name={icon} size={24} color={isFocused ? 'gold' : '#fff'} />
-    <Text style={[styles.taskbarLabel, isFocused && styles.taskbarLabelFocused]}>
-      {label}
-    </Text>
-  </TouchableOpacity>
-);
-
-export default Schedule;
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    justifyContent: 'space-between',
-    backgroundColor: 'gold',
-  },
-  navBarText: {
-    fontSize: 18,
-    color: '#000',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  navBarButton: {
-    padding: 10,
-    color: 'black',
-  },
-  plusButton: {
-    backgroundColor: 'gold',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  scheduleItem: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 10,
-    marginVertical: 10,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  scheduleActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 10,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  label: {
-    fontSize: 16,
-    marginVertical: 10,
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-  },
-  slider: {
-    width: '100%',
-    height: 40,
-  },
-  daysContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-    marginVertical: 20,
-  },
-  dayButton: {
-    padding: 10,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#000',
-    marginVertical: 5,
-  },
-  dayButtonSelected: {
-    backgroundColor: 'gold',
-  },
-  saveButton: {
-    backgroundColor: 'gold',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  taskbar: {
-    flexDirection: 'row',
-    backgroundColor: 'black',
-    height: 84,
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#232533',
-  },
-  taskbarItem: {
-    flex: 1,
-    alignItems: 'center',
-    padding: 10,
-  },
-  taskbarItemFocused: {
-    backgroundColor: '#333',
-  },
-  taskbarLabel: {
-    color: 'gold',
-    marginTop: 5,
-  },
-  taskbarLabelFocused: {
-    color: 'gold',
-  },
-});*/
-
-
-// This is the better one
 import Slider from '@react-native-community/slider';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -463,56 +16,85 @@ const Schedule = () => {
   const [days, setDays] = useState([]);
   const [conditions, setConditions] = useState([]);
   const [editingConditionIndex, setEditingConditionIndex] = useState(null);
+  const [conditionsWindow1, setConditionsWindow1] = useState([]);
 
-  const windowNumber = 2;
-  const ws = useRef(null);
+
+
+  const windowNumber1 = 2;
+  const windowNumber2 = 1;
+  const ws1 = useRef(null);
+  const ws2 = useRef(null);
 
   useEffect(() => {
-    ws.current = new WebSocket(WEBSOCKET_IP);
+    ws1.current = new WebSocket(WEBSOCKET_IP);
+    ws2.current = new WebSocket(WEBSOCKET_IP);
 
-    ws.current.onopen = () => {
-      console.log('WebSocket connected');
+    ws1.current.onopen = () => {
+      console.log('WebSocket connected for window 1');
     };
 
-    ws.current.onmessage = (e) => {
+    ws1.current.onmessage = (e) => {
       const message = JSON.parse(e.data);
       if (message.type === 'data') {
         const { Wind } = message;
-        if (Wind === windowNumber) {
-          // Handle data if necessary
+        if (Wind === windowNumber1) {
+          // Handle data for window 1 if necessary
         }
       }
     };
 
-    ws.current.onerror = (e) => {
-      console.error('WebSocket error:', e.message);
+    ws1.current.onerror = (e) => {
+      console.error('WebSocket error for window 1:', e.message);
     };
 
-    ws.current.onclose = () => {
-      console.log('WebSocket closed');
+    ws1.current.onclose = () => {
+      console.log('WebSocket closed for window 1');
+    };
+
+    ws2.current.onopen = () => {
+      console.log('WebSocket connected for window 2');
+    };
+
+    ws2.current.onmessage = (e) => {
+      const message = JSON.parse(e.data);
+      if (message.type === 'data') {
+        const { Wind } = message;
+        if (Wind === windowNumber2) {
+          // Handle data for window 2 if necessary
+        }
+      }
+    };
+
+    ws2.current.onerror = (e) => {
+      console.error('WebSocket error for window 2:', e.message);
+    };
+
+    ws2.current.onclose = () => {
+      console.log('WebSocket closed for window 2');
     };
 
     return () => {
-      if (ws.current) {
-        ws.current.close();
-      }
+      if (ws1.current) ws1.current.close();
+      if (ws2.current) ws2.current.close();
     };
   }, []);
 
+  const fetchConditions = async (windowNumber, setConditions) => {
+    try {
+      const response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/schedules/${windowNumber}`);
+      const data = await response.json();
+      setConditions(data);
+      console.log(`Conditions set for window ${windowNumber}:`, data);
+    } catch (error) {
+      console.error(`Fetch error for window ${windowNumber}:`, error);
+    }
+  };
+  
   useEffect(() => {
-    const fetchConditions = async () => {
-      try {
-        const response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/schedules/${windowNumber}`);
-        const data = await response.json();
-        setConditions(data);
-        console.log('Conditions set to:', data);
-      } catch (error) {
-        console.error('Fetch error:', error);
-      }
-    };
-
-    fetchConditions();
-  }, [windowNumber]);
+    fetchConditions(windowNumber1, setConditionsWindow1);
+    fetchConditions(windowNumber2, () => {}); // Fetch for window 2 but don't set the state
+  }, []);
+  
 
   useEffect(() => {
     const checkAndUpdateTintLevel = () => {
@@ -520,25 +102,26 @@ const Schedule = () => {
       const currentHour = now.getHours();
       const currentMinute = now.getMinutes();
       const currentDay = now.getDay(); // 0 (Sunday) to 6 (Saturday)
-
-      conditions.forEach((condition) => {
+  
+      conditionsWindow1.forEach((condition) => {
         if (
           condition.hour == currentHour &&
           condition.minute == currentMinute &&
           condition.days.includes(currentDay)
         ) {
           setTintLevel(condition.tintLevel);
-          sendTintLevelToWebSocket(condition.tintLevel);
+          sendTintLevelToWebSocket(condition.tintLevel, condition.windowNumber);
         }
       });
     };
-
+  
     const interval = setInterval(checkAndUpdateTintLevel, 60000);
     return () => clearInterval(interval);
-  }, [conditions]);
+  }, [conditionsWindow1]);
+  
 
   const openEditModal = (index) => {
-    const condition = conditions[index];
+    const condition = conditionsWindow1[index];
     setTintLevel(condition.tintLevel);
     setHour(condition.hour);
     setMinute(condition.minute);
@@ -558,7 +141,7 @@ const Schedule = () => {
 
   const saveCondition = async () => {
     let newCondition = {
-      windowNumber,
+      windowNumber: windowNumber1,
       hour,
       minute,
       days,
@@ -568,7 +151,7 @@ const Schedule = () => {
     try {
       let response;
       if (editingConditionIndex !== null) {
-        response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/schedules/${conditions[editingConditionIndex]._id}`, {
+        response = await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/schedules/${conditionsWindow1[editingConditionIndex]._id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -587,12 +170,12 @@ const Schedule = () => {
 
       const updatedCondition = await response.json();
       if (editingConditionIndex !== null) {
-        const updatedConditions = [...conditions];
+        const updatedConditions = [...conditionsWindow1];
         updatedConditions[editingConditionIndex] = updatedCondition;
-        setConditions(updatedConditions);
+        setConditionsWindow1(updatedConditions);
         setEditingConditionIndex(null);
       } else {
-        setConditions([...conditions, updatedCondition]);
+        setConditionsWindow1([...conditionsWindow1, updatedCondition]);
       }
 
       setHour('');
@@ -606,20 +189,41 @@ const Schedule = () => {
 
   const deleteCondition = async (index) => {
     try {
-      await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/schedules/${conditions[index]._id}`, {
+      await fetch(`${SERVER_PROTOCOL}://${SERVER_DOMAIN}/schedules/${conditionsWindow1[index]._id}`, {
         method: 'DELETE',
       });
-      setConditions(conditions.filter((_, i) => i !== index));
+      setConditionsWindow1(conditionsWindow1.filter((_, i) => i !== index));
     } catch (error) {
       console.error(error);
     }
   };
 
-  const sendTintLevelToWebSocket = (tintValue) => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ window: windowNumber, action: 'set', value: tintValue }));
+ /* const sendTintLevelToWebSocket = (tintValue, windowNumber) => {
+    const ws = windowNumber === windowNumber1 ? ws1.current : ws2.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ window: windowNumber, action: 'set', value: tintValue }));
+    }
+  };*/
+
+
+  const sendTintLevelToWebSocket = (tintValue, window) => {
+    if (window === windowNumber1) {
+      if (ws1.current && ws1.current.readyState === WebSocket.OPEN) {
+        console.log(`Sending tint level ${tintValue} to Window ${windowNumber1}`);
+        ws1.current.send(JSON.stringify({ window: windowNumber1, action: 'set', value: tintValue }));
+      } else {
+        console.log(`WebSocket not open for Window ${windowNumber1}`);
+      }
+    } else if (window === windowNumber2) {
+      if (ws2.current && ws2.current.readyState === WebSocket.OPEN) {
+        console.log(`Sending tint level ${tintValue} to Window ${windowNumber2}`);
+        ws2.current.send(JSON.stringify({ window: windowNumber2, action: 'set', value: tintValue }));
+      } else {
+        console.log(`WebSocket not open for Window ${windowNumber2}`);
+      }
     }
   };
+  
 
   const toggleDay = (day) => {
     setDays((prevDays) =>
@@ -631,16 +235,16 @@ const Schedule = () => {
     setFocusedItem(label);
     switch (label) {
       case 'Privacy':
-        router.replace(`/privacy${windowNumber}`);
+        router.replace(`/privacy${windowNumber1}`);
         break;
       case 'Schedule':
-        router.replace(`/schedule${windowNumber}`);
+        router.replace(`/schedule${windowNumber1}`);
         break;
       case 'Automatic':
-        router.replace(`/automatic${windowNumber}`);
+        router.replace(`/automatic${windowNumber1}`);
         break;
       default:
-        router.replace(`/window${windowNumber}`);
+        router.replace(`/window${windowNumber1}`);
     }
   };
 
@@ -648,27 +252,20 @@ const Schedule = () => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#161622" style="dark" />
       <View style={styles.navBar}>
-        <TouchableOpacity style={styles.navBarButton} onPress={() => router.replace(`/window${windowNumber}`)}>
+        <TouchableOpacity style={styles.navBarButton} onPress={() => router.replace(`/window${windowNumber1}`)}>
           <Icon name="chevron-back-sharp" size={30} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.navBarText}>Schedule for Window {windowNumber}</Text>
+        <Text style={styles.navBarText}>Schedule for Window {windowNumber1}</Text>
         <TouchableOpacity style={styles.plusButton} onPress={openAddModal}>
           <Icon name="add-circle-sharp" size={30} color="#000" />
         </TouchableOpacity>
       </View>
       <View style={styles.content}>
         <FlatList
-          data={conditions || []}
+          data={conditionsWindow1 || []}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item, index }) => (
             <View style={styles.scheduleItem}>
-              {/* <Text>
-                <Text style={{ fontWeight: 'bold' }}>Time: </Text>
-                {`${item.hour}:${item.minute < 10 ? `0${item.minute}` : item.minute}`} 
-                <Text style={{ fontWeight: 'bold' }}> Days: </Text>
-                {item.days.map(day => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][day]).join(', ')} 
-                <Text style={{ fontWeight: 'bold' }}> Tint Level: </Text>{item.tintLevel}%
-              </Text> */}
                 <Text>
                   <Text style={{ fontWeight: 'bold' }}>Time: </Text>
                   {`${item.hour % 12 === 0 ? 12 : item.hour % 12}:${item.minute < 10 ? `0${item.minute}` : item.minute} ${item.hour >= 12 ? 'PM' : 'AM'}`}
@@ -683,14 +280,85 @@ const Schedule = () => {
                   <Icon name="create" size={20} color="#007BFF" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => deleteCondition(index)}>
-                  <Icon name="trash" size={20} color="#FF0000" />
+                  <Icon name="trash" size={20} color="red" />
                 </TouchableOpacity>
               </View>
             </View>
           )}
         />
       </View>
-      <Modal visible={isModalVisible} animationType="slide" transparent={true}>
+      {/* <Modal visible={isModalVisible} animationType="slide">
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Set Schedule for Window {windowNumber1}</Text>
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Hour:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Hour"
+              keyboardType="numeric"
+              value={hour}
+              onChangeText={setHour}
+            />
+          </View>
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Minute:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Minute"
+              keyboardType="numeric"
+              value={minute}
+              onChangeText={setMinute}
+            />
+          </View>
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Days:</Text>
+            <View style={styles.daysContainer}>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.dayButton,
+                    days.includes(index) ? styles.dayButtonSelected : {},
+                  ]}
+                  onPress={() => toggleDay(index)}
+                >
+                  <Text
+                    style={[
+                      styles.dayButtonText,
+                      days.includes(index) ? styles.dayButtonTextSelected : {},
+                    ]}
+                  >
+                    {day}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Tint Level:</Text>
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={100}
+              step={1}
+              value={tintLevel}
+              onValueChange={setTintLevel}
+              minimumTrackTintColor="#007BFF"
+              maximumTrackTintColor="#000000"
+            />
+            <Text style={styles.tintLevelText}>{tintLevel}%</Text>
+          </View>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity style={styles.modalButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalButton} onPress={saveCondition}>
+              <Text style={styles.modalButtonText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal> */}
+       <Modal visible={isModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Schedule</Text>
@@ -698,9 +366,6 @@ const Schedule = () => {
               <Text style={styles.label}>Hour:</Text>
               <TextInput
                 style={styles.input}
-                // value={hour}
-                // onChangeText={(text) => setHour(text)}
-                // keyboardType="numeric"
                 placeholder="Enter hour (e.g., 06 or 18)"
                 value={hour.toString()} // Ensure the value is a string
                 onChangeText={(text) => setHour(parseInt(text) || 0)}
@@ -711,9 +376,6 @@ const Schedule = () => {
               <Text style={styles.label}>Minute:</Text>
               <TextInput
                 style={styles.input}
-                // value={minute}
-                // onChangeText={(text) => setMinute(text)}
-                // keyboardType="numeric"
                 placeholder="Enter minute (e.g., 50)"
                 value={minute.toString()} // Ensure the value is a string
                 onChangeText={(text) => setMinute(parseInt(text) || 0)}
@@ -783,6 +445,7 @@ const Schedule = () => {
   );
 };
 
+
 const TaskBarItem = ({ icon, label, isFocused, onPress }) => (
   <TouchableOpacity
     style={[styles.taskbarItem, isFocused && styles.taskbarItemFocused]}
@@ -798,7 +461,7 @@ const TaskBarItem = ({ icon, label, isFocused, onPress }) => (
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#161622',
   },
   navBar: {
     flexDirection: 'row',
@@ -960,4 +623,3 @@ const styles = StyleSheet.create({
 });
 
 export default Schedule;
-

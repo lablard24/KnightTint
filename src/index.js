@@ -5,7 +5,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import { WebSocketServer } from 'ws'; // Correct import for ES module
 
-import conditionsRouter from './routes/conditions.js';
+import { conditionRouter } from './routes/conditions.js';
 import { scheduleRouter } from './routes/schedule.js';
 import { userRouter } from './routes/users.js';
 
@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 
 app.use("/auth", userRouter);
 app.use(scheduleRouter);
-app.use('/conditions', conditionsRouter);
+app.use('/conditions', conditionRouter);
 
 const mongoDbUrl = process.env.MONGO_DB_CONN_STRING;
 

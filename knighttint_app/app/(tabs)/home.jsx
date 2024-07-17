@@ -565,7 +565,7 @@ const Home = () => {
 
     ws.current = new WebSocket(WEBSOCKET_IP);
 
-    ws.current.onopen = () => {
+   ws.current.onopen = () => {
       console.log('WebSocket connection opened');
     };
 
@@ -637,7 +637,7 @@ const Home = () => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#161622" style="dark" />
       <View style={styles.navBar}>
-        <Text style={styles.greeting}>{getGreeting()} {addPrefix(firstName)}!</Text>
+        <Text style={styles.greeting}>{getGreeting()}, {addPrefix(firstName)}!</Text>
         <TouchableOpacity style={styles.button} onPress={signOut}>
           <Icon name="log-out" size={30} color="#000" />
         </TouchableOpacity>
@@ -767,7 +767,7 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: 'gold',
     borderRadius: 10,
-    paddingHorizontal: 80,
+    paddingHorizontal: 90,
   },
 });
 
